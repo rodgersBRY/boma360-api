@@ -36,6 +36,11 @@ export const errorHandler = (
     return;
   }
 
+  if (pgErr?.code === '22P02') {
+    res.status(400).json({ error: 'Invalid UUID format' });
+    return;
+  }
+
   logger.error('Unhandled error %o', err);
   res.status(500).json({ error: 'Internal server error' });
 };
