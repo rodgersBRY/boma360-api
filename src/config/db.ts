@@ -22,7 +22,7 @@ export const pool = new Pool({
 export const connectDB = async (): Promise<void> => {
   const client = await pool.connect();
   client.release();
-  logger.info(`db-connected: ${POSTGRES_URL}`);
+  logger.info(`db-connected: <${POSTGRES_DATABASE}>`);
 };
 
 export const withTransaction = async <T>(

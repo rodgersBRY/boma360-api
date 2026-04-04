@@ -3,8 +3,8 @@
 
 @cowId=6d6f165a-41ee-44fa-9d50-f7075f79774d
 @healthRecordId=c849af45-bae8-4844-b6ff-65e77c865f51
-@breedingRecordId=54321
-@milkLogId=cc021d34-f6b6-4cbb-8d85-92d7cc25e636
+@breedingRecordId=70b399b7-fae5-453f-8ae2-59225c5b1cb2
+@milkLogId=8bf6493c-0bcc-464e-ab4c-9eb9f06e24a8
 
 ### ─────────────────────────────────────────
 ### HEALTH CHECK
@@ -191,8 +191,8 @@ POST {{baseUrl}}/cows/{{cowId}}/milk-logs
 Content-Type: application/json
 
 {
-  "morning_litres": 8.5,
-  "evening_litres": 6.0,
+  "litres": 8.5,
+  "period": "morning",
   "notes": "Normal"
 }
 
@@ -203,8 +203,8 @@ POST {{baseUrl}}/cows/{{cowId}}/milk-logs
 Content-Type: application/json
 
 {
-  "morning_litres": 7.0,
-  "evening_litres": 5.5,
+  "litres": 7.0,
+  "period": "evening",
   "log_date": "2026-04-03"
 }
 
@@ -220,7 +220,7 @@ PATCH {{baseUrl}}/cows/{{cowId}}/milk-logs/{{milkLogId}}
 Content-Type: application/json
 
 {
-  "evening_litres": 6.5,
+  "litres": 6.5,
   "notes": "Corrected evening reading"
 }
 
@@ -267,6 +267,7 @@ Content-Type: application/json
 {
   "sale_date": "2026-04-04",
   "litres_sold": 120.5,
+  "total_amount": 7832.50,
   "price_per_litre": 65.00,
   "buyer": "KCC",
   "notes": "Morning collection"
