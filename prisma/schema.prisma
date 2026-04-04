@@ -62,15 +62,13 @@ model BreedingRecord {
 }
 
 model MilkLog {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  cow_id         String   @db.Uuid
-  log_date       DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
-  morning_litres Decimal  @db.Decimal(6, 2)
-  evening_litres Decimal  @db.Decimal(6, 2)
-  /// Computed column: morning_litres + evening_litres (GENERATED ALWAYS AS STORED)
-  total_litres   Decimal  @db.Decimal(7, 2)
-  notes          String?
-  created_at     DateTime @default(now()) @db.Timestamptz()
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cow_id       String   @db.Uuid
+  log_date     DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
+  litres       Decimal  @db.Decimal(6, 2)
+  period       String   @db.VarChar(10)
+  notes        String?
+  created_at   DateTime @default(now()) @db.Timestamptz()
 
   cow Cow @relation(fields: [cow_id], references: [id], onDelete: Restrict)
 

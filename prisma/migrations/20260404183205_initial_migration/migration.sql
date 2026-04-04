@@ -44,9 +44,8 @@ CREATE TABLE "milk_logs" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "cow_id" UUID NOT NULL,
     "log_date" DATE NOT NULL DEFAULT CURRENT_DATE,
-    "morning_litres" DECIMAL(6,2) NOT NULL,
-    "evening_litres" DECIMAL(6,2) NOT NULL,
-    "total_litres" DECIMAL(7,2) NOT NULL,
+    "litres" DECIMAL(6,2) NOT NULL,
+    "period" VARCHAR(10) NOT NULL,
     "notes" TEXT,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
