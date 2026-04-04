@@ -13,6 +13,7 @@ export interface CreateMilkSaleInput {
   sale_date?: string;
   litres_sold: number;
   price_per_litre: number;
+  total_amount: number;
   buyer?: string;
   notes?: string;
 }
