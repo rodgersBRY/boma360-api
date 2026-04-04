@@ -11,6 +11,28 @@ const start = async (): Promise<void> => {
 
   app.listen(PORT, () => {
     logger.info(`server running on port ${PORT}`);
+    logger.info('registered endpoints:');
+    logger.info('  GET    /v1/health');
+    logger.info('  GET    /v1/cows');
+    logger.info('  POST   /v1/cows');
+    logger.info('  GET    /v1/cows/:id');
+    logger.info('  PATCH  /v1/cows/:id');
+    logger.info('  GET    /v1/cows/:cowId/health-records');
+    logger.info('  POST   /v1/cows/:cowId/health-records');
+    logger.info('  GET    /v1/cows/:cowId/health-records/:id');
+    logger.info('  PATCH  /v1/cows/:cowId/health-records/:id');
+    logger.info('  GET    /v1/cows/:cowId/breeding-records');
+    logger.info('  POST   /v1/cows/:cowId/breeding-records');
+    logger.info('  GET    /v1/cows/:cowId/breeding-records/:id');
+    logger.info('  GET    /v1/cows/:cowId/milk-logs');
+    logger.info('  POST   /v1/cows/:cowId/milk-logs');
+    logger.info('  PATCH  /v1/cows/:cowId/milk-logs/:id');
+    logger.info('  GET    /v1/cows/:cowId/expenses');
+    logger.info('  POST   /v1/cows/:cowId/expenses');
+    logger.info('  GET    /v1/milk-sales');
+    logger.info('  POST   /v1/milk-sales');
+    logger.info('  GET    /v1/alerts');
+    logger.info('  GET    /v1/dashboard');
   });
 };
 
