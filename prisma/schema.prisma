@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Cow {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tag_number    String   @unique @db.VarChar(50)
+  breed         String   @db.VarChar(100)
+  date_of_birth DateTime @db.Date
+  source        String   @db.VarChar(10)
+  status        String   @default("active") @db.VarChar(10)
+  created_at    DateTime @default(now()) @db.Timestamptz()
+
+  health_records   HealthRecord[]
+  breeding_records BreedingRecord[]
+  milk_logs        MilkLog[]
+  expense_logs     ExpenseLog[]
+
+  @@index([status])
+  @@index([tag_number])
+  @@map("cows")
+}
+
+model HealthRecord {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cow_id        String    @db.Uuid
+  type          String    @db.VarChar(20)
+  description   String
+  drug_used     String?   @db.VarChar(200)
+  next_due_date DateTime? @db.Date
+  record_date   DateTime  @default(dbgenerated("CURRENT_DATE")) @db.Date
+  notes         String?
+  created_at    DateTime  @default(now()) @db.Timestamptz()
+
+  cow Cow @relation(fields: [cow_id], references: [id], onDelete: Restrict)
+
+  @@index([cow_id])
+  @@index([next_due_date])
+  @@map("health_records")
+}
+
+model BreedingRecord {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cow_id                String    @db.Uuid
+  event_type            String    @db.VarChar(20)
+  event_date            DateTime  @db.Date
+  expected_calving_date DateTime? @db.Date
+  notes                 String?
+  created_at            DateTime  @default(now()) @db.Timestamptz()
+
+  cow Cow @relation(fields: [cow_id], references: [id], onDelete: Restrict)
+
+  @@index([cow_id])
+  @@index([expected_calving_date])
+  @@index([event_type])
+  @@map("breeding_records")
+}
+
+model MilkLog {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cow_id         String   @db.Uuid
+  log_date       DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
+  morning_litres Decimal  @db.Decimal(6, 2)
+  evening_litres Decimal  @db.Decimal(6, 2)
+  /// Computed column: morning_litres + evening_litres (GENERATED ALWAYS AS STORED)
+  total_litres   Decimal  @db.Decimal(7, 2)
+  notes          String?
+  created_at     DateTime @default(now()) @db.Timestamptz()
+
+  cow Cow @relation(fields: [cow_id], references: [id], onDelete: Restrict)
+
+  @@unique([cow_id, log_date], name: "uq_milk_log_cow_date")
+  @@index([cow_id])
+  @@index([log_date])
+  @@map("milk_logs")
+}
+
+model ExpenseLog {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cow_id       String   @db.Uuid
+  category     String   @db.VarChar(20)
+  amount       Decimal  @db.Decimal(10, 2)
+  expense_date DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
+  notes        String?
+  created_at   DateTime @default(now()) @db.Timestamptz()
+
+  cow Cow @relation(fields: [cow_id], references: [id], onDelete: Restrict)
+
+  @@index([cow_id])
+  @@index([expense_date])
+  @@map("expense_logs")
+}
+
+model MilkSale {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sale_date       DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
+  litres_sold     Decimal  @db.Decimal(8, 2)
+  price_per_litre Decimal  @db.Decimal(8, 2)
+  /// Computed column: litres_sold * price_per_litre (GENERATED ALWAYS AS STORED)
+  total_amount    Decimal  @db.Decimal(12, 2)
+  buyer           String?  @db.VarChar(200)
+  notes           String?
+  created_at      DateTime @default(now()) @db.Timestamptz()
+
+  @@index([sale_date])
+  @@map("milk_sales")
+}

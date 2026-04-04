@@ -1,0 +1,297 @@
+### Base URL
+@baseUrl = http://localhost:3000/v1
+
+### ─────────────────────────────────────────
+### HEALTH CHECK
+### ─────────────────────────────────────────
+
+GET {{baseUrl}}/health
+
+### ─────────────────────────────────────────
+### COWS
+### ─────────────────────────────────────────
+
+### Create cow
+POST {{baseUrl}}/cows
+Content-Type: application/json
+
+{
+  "tag_number": "COW-001",
+  "breed": "Friesian",
+  "date_of_birth": "2020-03-15",
+  "source": "bought"
+}
+
+###
+
+### List all cows
+GET {{baseUrl}}/cows
+
+###
+
+### List active cows
+GET {{baseUrl}}/cows?status=active
+
+###
+
+### Get single cow
+GET {{baseUrl}}/cows/{{cowId}}
+
+###
+
+### Update cow status (soft delete / mark sold)
+PATCH {{baseUrl}}/cows/{{cowId}}
+Content-Type: application/json
+
+{
+  "status": "sold"
+}
+
+### ─────────────────────────────────────────
+### HEALTH RECORDS
+### ─────────────────────────────────────────
+
+### Create health record (treatment)
+POST {{baseUrl}}/cows/{{cowId}}/health-records
+Content-Type: application/json
+
+{
+  "type": "treatment",
+  "description": "Mastitis treatment",
+  "drug_used": "Penicillin",
+  "next_due_date": "2026-04-11",
+  "record_date": "2026-04-04",
+  "notes": "Left rear quarter affected"
+}
+
+###
+
+### Create health record (vaccination)
+POST {{baseUrl}}/cows/{{cowId}}/health-records
+Content-Type: application/json
+
+{
+  "type": "vaccination",
+  "description": "FMD vaccine",
+  "next_due_date": "2026-10-04"
+}
+
+###
+
+### Create health record (deworming)
+POST {{baseUrl}}/cows/{{cowId}}/health-records
+Content-Type: application/json
+
+{
+  "type": "deworming",
+  "description": "Routine deworming",
+  "drug_used": "Albendazole",
+  "next_due_date": "2026-07-04"
+}
+
+###
+
+### List health records for a cow
+GET {{baseUrl}}/cows/{{cowId}}/health-records
+
+###
+
+### Get single health record
+GET {{baseUrl}}/cows/{{cowId}}/health-records/{{healthRecordId}}
+
+###
+
+### Update health record
+PATCH {{baseUrl}}/cows/{{cowId}}/health-records/{{healthRecordId}}
+Content-Type: application/json
+
+{
+  "next_due_date": "2026-04-18",
+  "notes": "Responding well to treatment"
+}
+
+### ─────────────────────────────────────────
+### BREEDING RECORDS
+### ─────────────────────────────────────────
+
+### Log heat
+POST {{baseUrl}}/cows/{{cowId}}/breeding-records
+Content-Type: application/json
+
+{
+  "event_type": "heat",
+  "event_date": "2026-04-04",
+  "notes": "Strong signs observed"
+}
+
+###
+
+### Log service (AI / bull)
+POST {{baseUrl}}/cows/{{cowId}}/breeding-records
+Content-Type: application/json
+
+{
+  "event_type": "service",
+  "event_date": "2026-04-05",
+  "expected_calving_date": "2027-01-10",
+  "notes": "AI — Friesian semen"
+}
+
+###
+
+### Log pregnancy check
+POST {{baseUrl}}/cows/{{cowId}}/breeding-records
+Content-Type: application/json
+
+{
+  "event_type": "pregnancy_check",
+  "event_date": "2026-05-05",
+  "expected_calving_date": "2027-01-10",
+  "notes": "Confirmed pregnant — 30 days"
+}
+
+###
+
+### Log calving (creates calf automatically)
+POST {{baseUrl}}/cows/{{cowId}}/breeding-records
+Content-Type: application/json
+
+{
+  "event_type": "calving",
+  "event_date": "2027-01-10",
+  "notes": "Normal delivery",
+  "calf": {
+    "tag_number": "CALF-001",
+    "breed": "Friesian",
+    "date_of_birth": "2027-01-10"
+  }
+}
+
+###
+
+### List breeding records for a cow
+GET {{baseUrl}}/cows/{{cowId}}/breeding-records
+
+###
+
+### Get single breeding record
+GET {{baseUrl}}/cows/{{cowId}}/breeding-records/{{breedingRecordId}}
+
+### ─────────────────────────────────────────
+### MILK LOGS
+### ─────────────────────────────────────────
+
+### Log today's milk
+POST {{baseUrl}}/cows/{{cowId}}/milk-logs
+Content-Type: application/json
+
+{
+  "morning_litres": 8.5,
+  "evening_litres": 6.0,
+  "notes": "Normal"
+}
+
+###
+
+### Log milk for a specific date
+POST {{baseUrl}}/cows/{{cowId}}/milk-logs
+Content-Type: application/json
+
+{
+  "morning_litres": 7.0,
+  "evening_litres": 5.5,
+  "log_date": "2026-04-03"
+}
+
+###
+
+### List milk logs for a cow
+GET {{baseUrl}}/cows/{{cowId}}/milk-logs
+
+###
+
+### Update milk log
+PATCH {{baseUrl}}/cows/{{cowId}}/milk-logs/{{milkLogId}}
+Content-Type: application/json
+
+{
+  "evening_litres": 6.5,
+  "notes": "Corrected evening reading"
+}
+
+### ─────────────────────────────────────────
+### EXPENSE LOGS
+### ─────────────────────────────────────────
+
+### Log expense
+POST {{baseUrl}}/cows/{{cowId}}/expenses
+Content-Type: application/json
+
+{
+  "category": "drugs",
+  "amount": 1500.00,
+  "expense_date": "2026-04-04",
+  "notes": "Penicillin purchase"
+}
+
+###
+
+### Log supplement expense
+POST {{baseUrl}}/cows/{{cowId}}/expenses
+Content-Type: application/json
+
+{
+  "category": "supplement",
+  "amount": 800.00,
+  "notes": "Mineral lick"
+}
+
+###
+
+### List expenses for a cow
+GET {{baseUrl}}/cows/{{cowId}}/expenses
+
+### ─────────────────────────────────────────
+### MILK SALES
+### ─────────────────────────────────────────
+
+### Log a milk sale
+POST {{baseUrl}}/milk-sales
+Content-Type: application/json
+
+{
+  "sale_date": "2026-04-04",
+  "litres_sold": 120.5,
+  "price_per_litre": 65.00,
+  "buyer": "KCC",
+  "notes": "Morning collection"
+}
+
+###
+
+### List all milk sales
+GET {{baseUrl}}/milk-sales
+
+###
+
+### List milk sales for a specific month
+GET {{baseUrl}}/milk-sales?month=2026-04
+
+### ─────────────────────────────────────────
+### ALERTS
+### ─────────────────────────────────────────
+
+### Get all alerts
+GET {{baseUrl}}/alerts
+
+### ─────────────────────────────────────────
+### DASHBOARD
+### ─────────────────────────────────────────
+
+### Get dashboard (current month)
+GET {{baseUrl}}/dashboard
+
+###
+
+### Get dashboard for a specific month
+GET {{baseUrl}}/dashboard?month=2026-04
