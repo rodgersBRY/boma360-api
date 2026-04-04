@@ -100,7 +100,7 @@ export class DashboardService {
 
   private async getTodayTotalMilk(): Promise<string> {
     const { rows } = await pool.query<{ total: string }>(
-      `SELECT COALESCE(SUM(total_litres), 0)::text AS total
+      `SELECT COALESCE(SUM(litres), 0)::text AS total
        FROM milk_logs
        WHERE log_date = CURRENT_DATE`
     );
@@ -109,7 +109,7 @@ export class DashboardService {
 
   private async getMonthlyMilkTotal(month: string): Promise<string> {
     const { rows } = await pool.query<{ total: string }>(
-      `SELECT COALESCE(SUM(total_litres), 0)::text AS total
+      `SELECT COALESCE(SUM(litres), 0)::text AS total
        FROM milk_logs
        WHERE to_char(log_date, 'YYYY-MM') = $1`,
       [month]
@@ -140,7 +140,7 @@ export class DashboardService {
   private async getMilkPerCow(month: string): Promise<CowMilkStat[]> {
     const { rows } = await pool.query<CowMilkStat>(
       `SELECT c.id AS cow_id, c.tag_number, c.breed,
-              COALESCE(SUM(m.total_litres), 0)::text AS total_litres
+              COALESCE(SUM(m.litres), 0)::text AS total_litres
        FROM cows c
        LEFT JOIN milk_logs m ON m.cow_id = c.id AND to_char(m.log_date, 'YYYY-MM') = $1
        WHERE c.status = 'active'
