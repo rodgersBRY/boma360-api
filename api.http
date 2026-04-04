@@ -1,5 +1,10 @@
 ### Base URL
-@baseUrl = http://localhost:3000/v1
+@baseUrl = http://localhost:8888/v1
+
+@cowId=142b95e2-4fa2-4d54-adaf-1c985cfee64d
+@healthRecordId=4d9a7f1c-5175-4f26-b027-9cd1e12be331
+@breedingRecordId=54321
+@milkLogId=98765
 
 ### ─────────────────────────────────────────
 ### HEALTH CHECK

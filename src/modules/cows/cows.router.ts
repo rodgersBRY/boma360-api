@@ -1,11 +1,13 @@
-import { Router } from 'express';
-import { validate } from '../../middleware/validate';
-import { createCowSchema, updateCowSchema } from './cows.schema';
-import { createCow, listCows, getCow, updateCow } from './cows.controller';
+import { Router } from "express";
+import { validate } from "../../middleware/validate";
+import { createCowSchema, updateCowSchema } from "./cows.schema";
+import { createCow, listCows, getCow, updateCow } from "./cows.controller";
 
 export const cowsRouter = Router();
 
-cowsRouter.get('/', listCows);
-cowsRouter.post('/', validate(createCowSchema), createCow);
-cowsRouter.get('/:id', getCow);
-cowsRouter.patch('/:id', validate(updateCowSchema), updateCow);
+cowsRouter.route("/").get(listCows).post(validate(createCowSchema), createCow);
+
+cowsRouter
+  .route("/:id")
+  .get(getCow)
+  .patch(validate(updateCowSchema), updateCow);
