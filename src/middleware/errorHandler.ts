@@ -5,6 +5,7 @@ import { logger } from '../config/logger';
 interface PgError extends Error {
   code?: string;
   detail?: string;
+  column?: string;
 }
 
 export const errorHandler = (
@@ -38,6 +39,11 @@ export const errorHandler = (
 
   if (pgErr?.code === '22P02') {
     res.status(400).json({ error: 'Invalid UUID format' });
+    return;
+  }
+
+  if (pgErr?.code === '23502') {
+    res.status(400).json({ error: `Missing required field: ${pgErr.column ?? 'unknown'}` });
     return;
   }
 
