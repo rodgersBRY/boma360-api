@@ -1,5 +1,12 @@
 node_modules/
 dist/
-.env
-*.log
 .claude/
+
+.env
+.env.*
+
+*.log
+
+*.http
+
+!.env.examplegenerated/
