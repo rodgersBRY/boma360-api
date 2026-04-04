@@ -10,7 +10,7 @@ const start = async (): Promise<void> => {
   const app = initializeServer();
 
   app.listen(PORT, () => {
-    logger.info(`server running on port ${PORT}`);
+    logger.info(`barn doors open — cattle manager is live on port ${PORT}`);
     logger.info('registered endpoints:');
     logger.info('  GET    /v1/health');
     logger.info('  GET    /v1/cows');
