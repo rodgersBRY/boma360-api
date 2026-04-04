@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { healthService } from './health.service';
+import { parsePagination } from '../../lib/pagination';
 
 export const createHealthRecord = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -10,8 +11,9 @@ export const createHealthRecord = async (req: Request, res: Response, next: Next
 
 export const listHealthRecords = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const records = await healthService.getRecordsByCow(req.params['cowId'] as string);
-    res.json(records);
+    const pagination = parsePagination(req.query as Record<string, unknown>);
+    const result = await healthService.getRecordsByCow(req.params['cowId'] as string, pagination);
+    res.json(result);
   } catch (err) { next(err); }
 };
 

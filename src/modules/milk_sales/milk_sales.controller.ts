@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { milkSalesService } from './milk_sales.service';
+import { parsePagination } from '../../lib/pagination';
 
 export const createMilkSale = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -11,7 +12,8 @@ export const createMilkSale = async (req: Request, res: Response, next: NextFunc
 export const listMilkSales = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const month = req.query['month'] as string | undefined;
-    const sales = await milkSalesService.getSales(month);
-    res.json(sales);
+    const pagination = parsePagination(req.query as Record<string, unknown>);
+    const result = await milkSalesService.getSales(pagination, month);
+    res.json(result);
   } catch (err) { next(err); }
 };

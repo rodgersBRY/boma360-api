@@ -1,5 +1,6 @@
 import { pool } from '../../config/db';
 import { CowNotFoundError } from '../../config/errors';
+import { PaginationParams, PaginatedResult, paginate } from '../../lib/pagination';
 import { ExpenseLog, CreateExpenseInput } from './expenses.types';
 
 export class ExpenseService {
@@ -16,15 +17,21 @@ export class ExpenseService {
     return rows[0]!;
   }
 
-  async getExpensesByCow(cowId: string): Promise<ExpenseLog[]> {
+  async getExpensesByCow(cowId: string, pagination: PaginationParams): Promise<PaginatedResult<ExpenseLog>> {
     const { rowCount } = await pool.query('SELECT 1 FROM cows WHERE id = $1', [cowId]);
     if (!rowCount) throw new CowNotFoundError();
 
-    const { rows } = await pool.query<ExpenseLog>(
-      'SELECT * FROM expense_logs WHERE cow_id = $1 ORDER BY expense_date DESC, created_at DESC',
+    const { rows: countRows } = await pool.query<{ count: string }>(
+      'SELECT COUNT(*) AS count FROM expense_logs WHERE cow_id = $1',
       [cowId]
     );
-    return rows;
+    const total = parseInt(countRows[0]!.count, 10);
+
+    const { rows } = await pool.query<ExpenseLog>(
+      'SELECT * FROM expense_logs WHERE cow_id = $1 ORDER BY expense_date DESC, created_at DESC LIMIT $2 OFFSET $3',
+      [cowId, pagination.limit, pagination.offset]
+    );
+    return paginate(rows, total, pagination);
   }
 }
 

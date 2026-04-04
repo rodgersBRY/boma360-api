@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { breedingService } from './breeding.service';
+import { parsePagination } from '../../lib/pagination';
 
 export const createBreedingRecord = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -10,8 +11,9 @@ export const createBreedingRecord = async (req: Request, res: Response, next: Ne
 
 export const listBreedingRecords = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const records = await breedingService.getRecordsByCow(req.params['cowId'] as string);
-    res.json(records);
+    const pagination = parsePagination(req.query as Record<string, unknown>);
+    const result = await breedingService.getRecordsByCow(req.params['cowId'] as string, pagination);
+    res.json(result);
   } catch (err) { next(err); }
 };
 

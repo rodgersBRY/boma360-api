@@ -1,5 +1,6 @@
 import { pool } from '../../config/db';
 import { CowNotFoundError, RecordNotFoundError } from '../../config/errors';
+import { PaginationParams, PaginatedResult, paginate } from '../../lib/pagination';
 import { HealthRecord, CreateHealthRecordInput, UpdateHealthRecordInput } from './health.types';
 
 export class HealthService {
@@ -24,15 +25,21 @@ export class HealthService {
     return rows[0]!;
   }
 
-  async getRecordsByCow(cowId: string): Promise<HealthRecord[]> {
+  async getRecordsByCow(cowId: string, pagination: PaginationParams): Promise<PaginatedResult<HealthRecord>> {
     const { rowCount } = await pool.query('SELECT 1 FROM cows WHERE id = $1', [cowId]);
     if (!rowCount) throw new CowNotFoundError();
 
-    const { rows } = await pool.query<HealthRecord>(
-      'SELECT * FROM health_records WHERE cow_id = $1 ORDER BY record_date DESC, created_at DESC',
+    const { rows: countRows } = await pool.query<{ count: string }>(
+      'SELECT COUNT(*) AS count FROM health_records WHERE cow_id = $1',
       [cowId]
     );
-    return rows;
+    const total = parseInt(countRows[0]!.count, 10);
+
+    const { rows } = await pool.query<HealthRecord>(
+      'SELECT * FROM health_records WHERE cow_id = $1 ORDER BY record_date DESC, created_at DESC LIMIT $2 OFFSET $3',
+      [cowId, pagination.limit, pagination.offset]
+    );
+    return paginate(rows, total, pagination);
   }
 
   async getRecordById(cowId: string, id: string): Promise<HealthRecord> {

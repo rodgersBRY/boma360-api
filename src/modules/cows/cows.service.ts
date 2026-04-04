@@ -1,5 +1,6 @@
 import { pool } from '../../config/db';
 import { CowNotFoundError } from '../../config/errors';
+import { PaginationParams, PaginatedResult, paginate } from '../../lib/pagination';
 import { Cow, CowStatus, CreateCowInput, UpdateCowInput } from './cows.types';
 
 export class CowService {
@@ -10,21 +11,25 @@ export class CowService {
        RETURNING *`,
       [input.tag_number, input.breed, input.date_of_birth, input.source]
     );
-    return rows[0];
+    return rows[0]!;
   }
 
-  async getAllCows(filters: { status?: CowStatus } = {}): Promise<Cow[]> {
-    if (filters.status) {
-      const { rows } = await pool.query<Cow>(
-        `SELECT * FROM cows WHERE status = $1 ORDER BY created_at DESC`,
-        [filters.status]
-      );
-      return rows;
-    }
-    const { rows } = await pool.query<Cow>(
-      `SELECT * FROM cows ORDER BY created_at DESC`
+  async getAllCows(filters: { status?: CowStatus }, pagination: PaginationParams): Promise<PaginatedResult<Cow>> {
+    const conditions = filters.status ? `WHERE status = $1` : '';
+    const params = filters.status ? [filters.status] : [];
+
+    const countIdx = params.length + 1;
+    const { rows: countRows } = await pool.query<{ count: string }>(
+      `SELECT COUNT(*) AS count FROM cows ${conditions}`,
+      params
     );
-    return rows;
+    const total = parseInt(countRows[0]!.count, 10);
+
+    const { rows } = await pool.query<Cow>(
+      `SELECT * FROM cows ${conditions} ORDER BY created_at DESC LIMIT $${countIdx} OFFSET $${countIdx + 1}`,
+      [...params, pagination.limit, pagination.offset]
+    );
+    return paginate(rows, total, pagination);
   }
 
   async getCowById(id: string): Promise<Cow> {

@@ -1,4 +1,5 @@
 import { pool } from '../../config/db';
+import { PaginationParams, PaginatedResult, paginate } from '../../lib/pagination';
 import { MilkSale, CreateMilkSaleInput } from './milk_sales.types';
 
 export class MilkSalesService {
@@ -12,21 +13,22 @@ export class MilkSalesService {
     return rows[0]!;
   }
 
-  async getSales(month?: string): Promise<MilkSale[]> {
-    if (month) {
-      // month format: YYYY-MM
-      const { rows } = await pool.query<MilkSale>(
-        `SELECT * FROM milk_sales
-         WHERE to_char(sale_date, 'YYYY-MM') = $1
-         ORDER BY sale_date DESC`,
-        [month]
-      );
-      return rows;
-    }
-    const { rows } = await pool.query<MilkSale>(
-      'SELECT * FROM milk_sales ORDER BY sale_date DESC'
+  async getSales(pagination: PaginationParams, month?: string): Promise<PaginatedResult<MilkSale>> {
+    const conditions = month ? `WHERE to_char(sale_date, 'YYYY-MM') = $1` : '';
+    const baseParams = month ? [month] : [];
+
+    const { rows: countRows } = await pool.query<{ count: string }>(
+      `SELECT COUNT(*) AS count FROM milk_sales ${conditions}`,
+      baseParams
     );
-    return rows;
+    const total = parseInt(countRows[0]!.count, 10);
+
+    const limitIdx = baseParams.length + 1;
+    const { rows } = await pool.query<MilkSale>(
+      `SELECT * FROM milk_sales ${conditions} ORDER BY sale_date DESC LIMIT $${limitIdx} OFFSET $${limitIdx + 1}`,
+      [...baseParams, pagination.limit, pagination.offset]
+    );
+    return paginate(rows, total, pagination);
   }
 }
 
