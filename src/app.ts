@@ -2,10 +2,18 @@ import 'dotenv/config';
 import { connectDB } from './config/db';
 import { initializeServer } from './config/express';
 import { logger } from './config/logger';
-import { PORT } from './env/system';
+import { NODE_ENV, PORT, SEED_TEST_DATA_ON_STARTUP } from './env/system';
+import { seedTestData } from './testing/seedTestData';
 
 const start = async (): Promise<void> => {
   await connectDB();
+  if (SEED_TEST_DATA_ON_STARTUP) {
+    if (NODE_ENV === 'production') {
+      logger.warn('skipping test seed data in production mode');
+    } else {
+      await seedTestData();
+    }
+  }
 
   const app = initializeServer();
 

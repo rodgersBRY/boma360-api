@@ -7,6 +7,7 @@ export const requestResponseLogger = (
   next: NextFunction,
 ): void => {
   const startedAt = Date.now();
+  const requestBody = req.body;
   let responseBody: unknown;
 
   const originalJson = res.json.bind(res);
@@ -17,7 +18,7 @@ export const requestResponseLogger = (
 
   res.on('finish', () => {
     logger.info('%s %s -> %d (%dms)', req.method, req.originalUrl, res.statusCode, Date.now() - startedAt, {
-      requestBody: req.body,
+      requestBody,
       responseBody,
     });
   });

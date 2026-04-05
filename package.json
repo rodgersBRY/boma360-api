@@ -7,6 +7,7 @@
     "dev": "nodemon",
     "build": "tsc",
     "start": "node dist/app.js",
+    "seed:test": "ts-node src/scripts/seedTestData.ts",
     "migrate": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy"
   },

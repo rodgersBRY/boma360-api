@@ -3,11 +3,15 @@ import { Request, Response, NextFunction } from 'express';
 const toCamel = (str: string): string =>
   str.replace(/_([a-z])/g, (_, char: string) => char.toUpperCase());
 
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  Object.prototype.toString.call(value) === '[object Object]';
+
 const convertKeys = (value: unknown): unknown => {
+  if (value instanceof Date) return value.toISOString();
   if (Array.isArray(value)) return value.map(convertKeys);
-  if (value !== null && typeof value === 'object') {
+  if (isPlainObject(value)) {
     return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>).map(([k, v]) => [toCamel(k), convertKeys(v)])
+      Object.entries(value).map(([k, v]) => [toCamel(k), convertKeys(v)])
     );
   }
   return value;
