@@ -11,5 +11,6 @@ const run = async (): Promise<void> => {
 
 run().catch((error) => {
   logger.error('failed to seed test data: %o', error);
+  
   process.exit(1);
 });

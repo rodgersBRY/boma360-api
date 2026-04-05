@@ -4,11 +4,11 @@ Tracks the full breeding cycle per cow: heat detection, AI/natural service, preg
 
 ## Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/v1/cows/:cowId/breeding-records` | List breeding records for a cow |
-| `POST` | `/v1/cows/:cowId/breeding-records` | Create a breeding record |
-| `GET` | `/v1/cows/:cowId/breeding-records/:id` | Get a single breeding record |
+| Method | Path                                   | Description                     |
+| ------ | -------------------------------------- | ------------------------------- |
+| `GET`  | `/v1/cows/:cowId/breeding-records`     | List breeding records for a cow |
+| `POST` | `/v1/cows/:cowId/breeding-records`     | Create a breeding record        |
+| `GET`  | `/v1/cows/:cowId/breeding-records/:id` | Get a single breeding record    |
 
 ## Create a Breeding Record
 
@@ -42,16 +42,16 @@ When `event_type` is `calving`, include a `calf` object. The calf is created as 
 }
 ```
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `event_type` | `heat` \| `service` \| `pregnancy_check` \| `calving` | yes | |
-| `event_date` | date (YYYY-MM-DD) | yes | |
-| `expected_calving_date` | date (YYYY-MM-DD) | no | Set on service/pregnancy_check events |
-| `notes` | string | no | |
-| `calf` | object | only when `event_type=calving` | See calf fields below |
-| `calf.tag_number` | string | yes (for calving) | Must be unique |
-| `calf.breed` | string | yes (for calving) | |
-| `calf.date_of_birth` | date | yes (for calving) | |
+| Field                   | Type                                                  | Required                       | Notes                                 |
+| ----------------------- | ----------------------------------------------------- | ------------------------------ | ------------------------------------- |
+| `event_type`            | `heat` \| `service` \| `pregnancy_check` \| `calving` | yes                            |                                       |
+| `event_date`            | date (YYYY-MM-DD)                                     | yes                            |                                       |
+| `expected_calving_date` | date (YYYY-MM-DD)                                     | no                             | Set on service/pregnancy_check events |
+| `notes`                 | string                                                | no                             |                                       |
+| `calf`                  | object                                                | only when `event_type=calving` | See calf fields below                 |
+| `calf.tag_number`       | string                                                | yes (for calving)              | Must be unique                        |
+| `calf.breed`            | string                                                | yes (for calving)              |                                       |
+| `calf.date_of_birth`    | date                                                  | yes (for calving)              |                                       |
 
 ### Calving Response
 

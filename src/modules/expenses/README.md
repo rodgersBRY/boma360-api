@@ -4,10 +4,10 @@ Tracks per-cow expenses: treatments, drugs, supplements, and other costs. Used b
 
 ## Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/v1/cows/:cowId/expenses` | List expenses for a cow |
-| `POST` | `/v1/cows/:cowId/expenses` | Log an expense |
+| Method | Path                       | Description             |
+| ------ | -------------------------- | ----------------------- |
+| `GET`  | `/v1/cows/:cowId/expenses` | List expenses for a cow |
+| `POST` | `/v1/cows/:cowId/expenses` | Log an expense          |
 
 ## Log an Expense
 
@@ -16,22 +16,23 @@ Tracks per-cow expenses: treatments, drugs, supplements, and other costs. Used b
 ```json
 {
   "category": "drugs",
-  "amount": 1500.00,
+  "amount": 1500.0,
   "expense_date": "2026-04-04",
   "notes": "Penicillin — 10 vials"
 }
 ```
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `category` | `treatment` \| `drugs` \| `supplement` \| `other` | yes | |
-| `amount` | number | yes | Decimal, e.g. `1500.00` |
-| `expense_date` | date (YYYY-MM-DD) | yes | |
-| `notes` | string | no | |
+| Field          | Type                                              | Required | Notes                   |
+| -------------- | ------------------------------------------------- | -------- | ----------------------- |
+| `category`     | `treatment` \| `drugs` \| `supplement` \| `other` | yes      |                         |
+| `amount`       | number                                            | yes      | Decimal, e.g. `1500.00` |
+| `expense_date` | date (YYYY-MM-DD)                                 | yes      |                         |
+| `notes`        | string                                            | no       |                         |
 
 ## Dashboard Integration
 
 Expenses feed:
+
 - `monthly_expenses` — total farm expenses for the month
 - `expense_per_cow` — per-cow expense totals for the month
 - `profit` — calculated as `monthly_milk_income - monthly_expenses`

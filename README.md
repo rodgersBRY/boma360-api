@@ -43,7 +43,11 @@ api/
 │   ├── middleware/
 │   │   ├── camelCase.ts        # snake_case → camelCase response transformer
 │   │   ├── errorHandler.ts     # Global error handler
+│   │   ├── normalizeBodyKeys.ts # camelCase request body → snake_case normalizer
+│   │   ├── requestResponseLogger.ts # Structured request/response logging
 │   │   └── validate.ts         # Zod request validation
+│   ├── scripts/                # CLI helpers like test seeding
+│   └── testing/                # Repeatable local/test data setup
 │   └── modules/
 │       ├── cows/               # Cow registry
 │       ├── health/             # Health records
@@ -134,8 +138,21 @@ npm run build && npm start
 | `npm run dev` | Start dev server with nodemon |
 | `npm run build` | Compile TypeScript to `dist/` |
 | `npm start` | Run compiled build |
+| `npm run seed:test` | Insert repeatable local test data |
 | `npm run migrate` | Create and apply a new migration |
 | `npm run migrate:deploy` | Apply pending migrations (production) |
+
+## Test Seed Data
+
+The API includes a repeatable test seed for local development and manual QA.
+
+- Manual seed: `npm run seed:test`
+- Seed during startup: `SEED_TEST_DATA_ON_STARTUP=true npm run dev`
+- Production safety: startup seeding is skipped when `NODE_ENV=production`
+
+The seed creates linked cows, health records, breeding records, milk logs, expense logs, and milk sales so the client has realistic data for lists, alerts, and dashboard screens.
+
+More detail: [src/testing/README.md](src/testing/README.md)
 
 ## Database Design
 

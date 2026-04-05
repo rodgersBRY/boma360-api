@@ -4,14 +4,14 @@ Returns a full farm summary: herd stats, production totals, income, expenses, an
 
 ## Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/v1/dashboard` | Get dashboard metrics |
+| Method | Path            | Description           |
+| ------ | --------------- | --------------------- |
+| `GET`  | `/v1/dashboard` | Get dashboard metrics |
 
 ## Query Parameters
 
-| Param | Format | Default | Example |
-|---|---|---|---|
+| Param   | Format    | Default       | Example          |
+| ------- | --------- | ------------- | ---------------- |
 | `month` | `YYYY-MM` | current month | `?month=2026-04` |
 
 ## Response
@@ -47,15 +47,15 @@ Returns a full farm summary: herd stats, production totals, income, expenses, an
 
 ## Metric Definitions
 
-| Metric | Calculation |
-|---|---|
-| `totalActiveCows` | COUNT of cows with `status = 'active'` |
-| `pregnantCows` | COUNT of active cows with a breeding record (`expected_calving_date > today`) |
-| `cowsInMilk` | COUNT of active cows that have a milk_log in the last 7 days |
-| `todayTotalMilk` | SUM of `litres` in `milk_logs` where `log_date = today` |
-| `monthlyMilkTotal` | SUM of `litres` in `milk_logs` for the selected month |
-| `monthlyExpenses` | SUM of `amount` in `expense_logs` for the selected month |
-| `monthlyMilkIncome` | SUM of `total_amount` in `milk_sales` for the selected month |
-| `profit` | `monthlyMilkIncome - monthlyExpenses` |
-| `milkPerCow` | Per-cow SUM of `litres` for the selected month |
-| `expensePerCow` | Per-cow SUM of `amount` for the selected month |
+| Metric              | Calculation                                                                   |
+| ------------------- | ----------------------------------------------------------------------------- |
+| `totalActiveCows`   | COUNT of cows with `status = 'active'`                                        |
+| `pregnantCows`      | COUNT of active cows with a breeding record (`expected_calving_date > today`) |
+| `cowsInMilk`        | COUNT of active cows that have a milk_log in the last 7 days                  |
+| `todayTotalMilk`    | SUM of `litres` in `milk_logs` where `log_date = today`                       |
+| `monthlyMilkTotal`  | SUM of `litres` in `milk_logs` for the selected month                         |
+| `monthlyExpenses`   | SUM of `amount` in `expense_logs` for the selected month                      |
+| `monthlyMilkIncome` | SUM of `total_amount` in `milk_sales` for the selected month                  |
+| `profit`            | `monthlyMilkIncome - monthlyExpenses`                                         |
+| `milkPerCow`        | Per-cow SUM of `litres` for the selected month                                |
+| `expensePerCow`     | Per-cow SUM of `amount` for the selected month                                |

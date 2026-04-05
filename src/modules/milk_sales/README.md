@@ -4,10 +4,10 @@ Records farm-level milk sales. Not tied to individual cows. `total_amount` is co
 
 ## Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/v1/milk-sales` | List all milk sales |
-| `POST` | `/v1/milk-sales` | Log a milk sale |
+| Method | Path             | Description         |
+| ------ | ---------------- | ------------------- |
+| `GET`  | `/v1/milk-sales` | List all milk sales |
+| `POST` | `/v1/milk-sales` | Log a milk sale     |
 
 ## Log a Sale
 
@@ -16,26 +16,27 @@ Records farm-level milk sales. Not tied to individual cows. `total_amount` is co
 ```json
 {
   "sale_date": "2026-04-04",
-  "litres_sold": 100.00,
-  "price_per_litre": 50.00,
+  "litres_sold": 100.0,
+  "price_per_litre": 50.0,
   "buyer": "Dairy Cooperative",
   "notes": "Grade A milk"
 }
 ```
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `sale_date` | date (YYYY-MM-DD) | yes | |
-| `litres_sold` | number | yes | |
-| `price_per_litre` | number | yes | |
-| `buyer` | string | no | |
-| `notes` | string | no | |
+| Field             | Type              | Required | Notes |
+| ----------------- | ----------------- | -------- | ----- |
+| `sale_date`       | date (YYYY-MM-DD) | yes      |       |
+| `litres_sold`     | number            | yes      |       |
+| `price_per_litre` | number            | yes      |       |
+| `buyer`           | string            | no       |       |
+| `notes`           | string            | no       |       |
 
 `total_amount` is not accepted in the request — it is always calculated by the database.
 
 ## Dashboard Integration
 
 Milk sales feed:
+
 - `monthly_milk_income` — sum of `total_amount` for the selected month
 - `profit` — calculated as `monthly_milk_income - monthly_expenses`
 

@@ -4,12 +4,12 @@ Tracks treatments, vaccinations, and deworming events per cow. Supports scheduli
 
 ## Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/v1/cows/:cowId/health-records` | List health records for a cow |
-| `POST` | `/v1/cows/:cowId/health-records` | Create a health record |
-| `GET` | `/v1/cows/:cowId/health-records/:id` | Get a single health record |
-| `PATCH` | `/v1/cows/:cowId/health-records/:id` | Update a health record |
+| Method  | Path                                 | Description                   |
+| ------- | ------------------------------------ | ----------------------------- |
+| `GET`   | `/v1/cows/:cowId/health-records`     | List health records for a cow |
+| `POST`  | `/v1/cows/:cowId/health-records`     | Create a health record        |
+| `GET`   | `/v1/cows/:cowId/health-records/:id` | Get a single health record    |
+| `PATCH` | `/v1/cows/:cowId/health-records/:id` | Update a health record        |
 
 ## Create a Health Record
 
@@ -26,14 +26,14 @@ Tracks treatments, vaccinations, and deworming events per cow. Supports scheduli
 }
 ```
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `type` | `treatment` \| `vaccination` \| `deworming` | yes | |
-| `description` | string | yes | |
-| `drug_used` | string | no | |
-| `record_date` | date (YYYY-MM-DD) | yes | |
-| `next_due_date` | date (YYYY-MM-DD) | no | Used by alerts when follow-up is needed |
-| `notes` | string | no | |
+| Field           | Type                                        | Required | Notes                                   |
+| --------------- | ------------------------------------------- | -------- | --------------------------------------- |
+| `type`          | `treatment` \| `vaccination` \| `deworming` | yes      |                                         |
+| `description`   | string                                      | yes      |                                         |
+| `drug_used`     | string                                      | no       |                                         |
+| `record_date`   | date (YYYY-MM-DD)                           | yes      |                                         |
+| `next_due_date` | date (YYYY-MM-DD)                           | no       | Used by alerts when follow-up is needed |
+| `notes`         | string                                      | no       |                                         |
 
 ## Update a Health Record
 

@@ -4,11 +4,11 @@ Records daily milk production per cow. One entry per cow per day (enforced by a 
 
 ## Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/v1/cows/:cowId/milk-logs` | List milk logs for a cow |
-| `POST` | `/v1/cows/:cowId/milk-logs` | Log milk production |
-| `PATCH` | `/v1/cows/:cowId/milk-logs/:id` | Update a milk log |
+| Method  | Path                            | Description              |
+| ------- | ------------------------------- | ------------------------ |
+| `GET`   | `/v1/cows/:cowId/milk-logs`     | List milk logs for a cow |
+| `POST`  | `/v1/cows/:cowId/milk-logs`     | Log milk production      |
+| `PATCH` | `/v1/cows/:cowId/milk-logs/:id` | Update a milk log        |
 
 ## Log Milk Production
 
@@ -23,12 +23,12 @@ Records daily milk production per cow. One entry per cow per day (enforced by a 
 }
 ```
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `litres` | number | yes | Decimal, e.g. `8.5` |
-| `period` | `morning` \| `afternoon` \| `evening` | yes | |
-| `log_date` | date (YYYY-MM-DD) | yes | |
-| `notes` | string | no | |
+| Field      | Type                                  | Required | Notes               |
+| ---------- | ------------------------------------- | -------- | ------------------- |
+| `litres`   | number                                | yes      | Decimal, e.g. `8.5` |
+| `period`   | `morning` \| `afternoon` \| `evening` | yes      |                     |
+| `log_date` | date (YYYY-MM-DD)                     | yes      |                     |
+| `notes`    | string                                | no       |                     |
 
 A `409 Conflict` is returned if a log already exists for that cow on that date.
 
@@ -45,6 +45,7 @@ Active cows with no milk log for today appear in `/v1/alerts` under `no_milk_tod
 ## Dashboard Integration
 
 Milk logs feed:
+
 - `today_total_milk` — sum of all logs for today
 - `monthly_milk_total` — sum for the selected month
 - `milk_per_cow` — per-cow totals for the month

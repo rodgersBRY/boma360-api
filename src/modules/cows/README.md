@@ -4,12 +4,12 @@ Manages the cow registry. Every other module references a cow via `cowId`.
 
 ## Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/v1/cows` | List all cows |
-| `POST` | `/v1/cows` | Register a new cow |
-| `GET` | `/v1/cows/:id` | Get a single cow |
-| `PATCH` | `/v1/cows/:id` | Update a cow |
+| Method  | Path           | Description        |
+| ------- | -------------- | ------------------ |
+| `GET`   | `/v1/cows`     | List all cows      |
+| `POST`  | `/v1/cows`     | Register a new cow |
+| `GET`   | `/v1/cows/:id` | Get a single cow   |
+| `PATCH` | `/v1/cows/:id` | Update a cow       |
 
 ## Register a Cow
 
@@ -24,12 +24,12 @@ Manages the cow registry. Every other module references a cow via `cowId`.
 }
 ```
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `tag_number` | string | yes | Must be unique across all cows |
-| `breed` | string | yes | |
-| `date_of_birth` | date (YYYY-MM-DD) | yes | |
-| `source` | `bought` \| `born` | yes | |
+| Field           | Type               | Required | Notes                          |
+| --------------- | ------------------ | -------- | ------------------------------ |
+| `tag_number`    | string             | yes      | Must be unique across all cows |
+| `breed`         | string             | yes      |                                |
+| `date_of_birth` | date (YYYY-MM-DD)  | yes      |                                |
+| `source`        | `bought` \| `born` | yes      |                                |
 
 ## List Cows
 
@@ -37,11 +37,11 @@ Manages the cow registry. Every other module references a cow via `cowId`.
 
 Optional query params:
 
-| Param | Description | Default |
-|---|---|---|
-| `status` | Filter by `active`, `sold`, or `dead` | all |
-| `page` | Page number | 1 |
-| `limit` | Results per page | 20 |
+| Param    | Description                           | Default |
+| -------- | ------------------------------------- | ------- |
+| `status` | Filter by `active`, `sold`, or `dead` | all     |
+| `page`   | Page number                           | 1       |
+| `limit`  | Results per page                      | 20      |
 
 ## Update a Cow
 
