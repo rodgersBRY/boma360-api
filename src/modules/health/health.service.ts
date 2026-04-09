@@ -1,4 +1,4 @@
-import { supabase } from '../../config/db';
+import { getDbClient } from '../../config/db';
 import { CowNotFoundError, RecordNotFoundError } from '../../config/errors';
 import { PaginationParams, PaginatedResult, paginate } from '../../lib/pagination';
 import {
@@ -8,8 +8,12 @@ import {
 } from './health.types';
 
 export class HealthService {
+  private get db() {
+    return getDbClient();
+  }
+
   private async ensureCowExists(cowId: string): Promise<void> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('cows')
       .select('id')
       .eq('id', cowId)
@@ -40,7 +44,7 @@ export class HealthService {
       payload['record_date'] = input.record_date;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('health_records')
       .insert(payload)
       .select('*')
@@ -58,7 +62,7 @@ export class HealthService {
   ): Promise<PaginatedResult<HealthRecord>> {
     await this.ensureCowExists(cowId);
 
-    const { data, error, count } = await supabase
+    const { data, error, count } = await this.db
       .from('health_records')
       .select('*', { count: 'exact' })
       .eq('cow_id', cowId)
@@ -72,7 +76,7 @@ export class HealthService {
   }
 
   async getRecordById(cowId: string, id: string): Promise<HealthRecord> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('health_records')
       .select('*')
       .eq('id', id)
@@ -99,7 +103,7 @@ export class HealthService {
       updates.next_due_date = input.next_due_date ?? null;
     if (input.notes !== undefined) updates.notes = input.notes;
 
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('health_records')
       .update(updates)
       .eq('id', id)

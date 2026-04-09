@@ -17,7 +17,7 @@ export const requestResponseLogger = (
   };
 
   res.on('finish', () => {
-    logger.info('%s %s -> %d (%dms)', req.method, req.originalUrl, res.statusCode, Date.now() - startedAt, {
+    logger.debug('%s %s -> %d (%dms)', req.method, req.originalUrl, res.statusCode, Date.now() - startedAt, {
       requestBody,
       responseBody,
     });

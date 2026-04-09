@@ -1,11 +1,15 @@
-import { supabase } from '../../config/db';
+import { getDbClient } from '../../config/db';
 import { CowNotFoundError } from '../../config/errors';
 import { PaginationParams, PaginatedResult, paginate } from '../../lib/pagination';
 import { CreateExpenseInput, ExpenseLog } from './expenses.types';
 
 export class ExpenseService {
+  private get db() {
+    return getDbClient();
+  }
+
   private async ensureCowExists(cowId: string): Promise<void> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('cows')
       .select('id')
       .eq('id', cowId)
@@ -29,7 +33,7 @@ export class ExpenseService {
       payload['expense_date'] = input.expense_date;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('expense_logs')
       .insert(payload)
       .select('*')
@@ -47,7 +51,7 @@ export class ExpenseService {
   ): Promise<PaginatedResult<ExpenseLog>> {
     await this.ensureCowExists(cowId);
 
-    const { data, error, count } = await supabase
+    const { data, error, count } = await this.db
       .from('expense_logs')
       .select('*', { count: 'exact' })
       .eq('cow_id', cowId)

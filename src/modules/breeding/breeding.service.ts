@@ -1,4 +1,4 @@
-import { supabase } from '../../config/db';
+import { getDbClient } from '../../config/db';
 import { CowNotFoundError, RecordNotFoundError } from '../../config/errors';
 import { logger } from '../../config/logger';
 import { PaginationParams, PaginatedResult, paginate } from '../../lib/pagination';
@@ -10,8 +10,12 @@ import {
 } from './breeding.types';
 
 export class BreedingService {
+  private get db() {
+    return getDbClient();
+  }
+
   private async ensureCowExists(cowId: string): Promise<void> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('cows')
       .select('id')
       .eq('id', cowId)
@@ -28,7 +32,7 @@ export class BreedingService {
     await this.ensureCowExists(cowId);
 
     if (input.event_type === 'calving') {
-      const { data: breedingRecord, error: breedingError } = await supabase
+      const { data: breedingRecord, error: breedingError } = await this.db
         .from('breeding_records')
         .insert({
           cow_id: cowId,
@@ -43,7 +47,7 @@ export class BreedingService {
       if (breedingError) throw breedingError;
       if (!breedingRecord) throw new Error('Failed to create calving record');
 
-      const { data: calf, error: calfError } = await supabase
+      const { data: calf, error: calfError } = await this.db
         .from('cows')
         .insert({
           tag_number: input.calf!.tag_number,
@@ -55,7 +59,7 @@ export class BreedingService {
         .maybeSingle();
 
       if (calfError || !calf) {
-        const { error: rollbackError } = await supabase
+        const { error: rollbackError } = await this.db
           .from('breeding_records')
           .delete()
           .eq('id', breedingRecord.id);
@@ -69,7 +73,7 @@ export class BreedingService {
       return { breeding_record: breedingRecord, calf };
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('breeding_records')
       .insert({
         cow_id: cowId,
@@ -93,7 +97,7 @@ export class BreedingService {
   ): Promise<PaginatedResult<BreedingRecord>> {
     await this.ensureCowExists(cowId);
 
-    const { data, error, count } = await supabase
+    const { data, error, count } = await this.db
       .from('breeding_records')
       .select('*', { count: 'exact' })
       .eq('cow_id', cowId)
@@ -107,7 +111,7 @@ export class BreedingService {
   }
 
   async getRecordById(cowId: string, id: string): Promise<BreedingRecord> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('breeding_records')
       .select('*')
       .eq('id', id)

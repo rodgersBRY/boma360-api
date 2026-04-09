@@ -27,6 +27,12 @@ export class ValidationError extends CustomError {
   }
 }
 
+export class UnauthorizedError extends CustomError {
+  constructor(message = 'Unauthorized') {
+    super(message, 401);
+  }
+}
+
 export class CowNotFoundError extends NotFoundError {
   constructor() {
     super('Cow');

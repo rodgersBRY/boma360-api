@@ -5,6 +5,8 @@ import { errorHandler } from "../middleware/errorHandler";
 import { camelCaseResponse } from "../middleware/camelCase";
 import { normalizeBodyKeys } from "../middleware/normalizeBodyKeys";
 import { requestResponseLogger } from "../middleware/requestResponseLogger";
+import { requireAuth, withSupabaseContext } from "../middleware/auth";
+import { authRouter } from "../modules/auth/auth.router";
 import { cowsRouter } from "../modules/cows/cows.router";
 import { healthRouter } from "../modules/health/health.router";
 import { breedingRouter } from "../modules/breeding/breeding.router";
@@ -24,7 +26,8 @@ export const initializeServer = (): Application => {
     .use(express.json())
     .use(requestResponseLogger)
     .use(normalizeBodyKeys)
-    .use(camelCaseResponse);
+    .use(camelCaseResponse)
+    .use(withSupabaseContext);
 
   app.get("/v1/health", async (_req: Request, res: Response) => {
     try {
@@ -35,6 +38,9 @@ export const initializeServer = (): Application => {
       res.status(503).json({ status: "error", db: "disconnected" });
     }
   });
+
+  app.use("/v1/auth", authRouter);
+  app.use(requireAuth);
 
   app.use("/v1/cows", cowsRouter);
   app.use("/v1/cows", healthRouter);

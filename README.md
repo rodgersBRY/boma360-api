@@ -49,6 +49,7 @@ api/
 │   ├── scripts/                # CLI helpers like test seeding
 │   └── testing/                # Repeatable local/test data setup
 │   └── modules/
+│       ├── auth/               # Authentication (Supabase Auth)
 │       ├── cows/               # Cow registry
 │       ├── health/             # Health records
 │       ├── breeding/           # Breeding records
@@ -83,6 +84,7 @@ All routes are prefixed with `/v1/`.
 
 | Module | Base Path | Docs |
 |---|---|---|
+| Auth | `/v1/auth` | [README](src/modules/auth/README.md) |
 | Cows | `/v1/cows` | [README](src/modules/cows/README.md) |
 | Health Records | `/v1/cows/:cowId/health-records` | [README](src/modules/health/README.md) |
 | Breeding Records | `/v1/cows/:cowId/breeding-records` | [README](src/modules/breeding/README.md) |
@@ -176,6 +178,12 @@ See individual module READMEs for table schemas.
 ## Response Format
 
 All responses use camelCase keys regardless of database column naming.
+
+## Authentication
+
+- Public endpoints: `GET /v1/health`, `POST /v1/auth/sign-up`, `POST /v1/auth/sign-in`, `POST /v1/auth/refresh`
+- Protected endpoints: all other `/v1/*` routes
+- Send bearer token as `Authorization: Bearer <access_token>`
 
 **List endpoints** return paginated responses:
 

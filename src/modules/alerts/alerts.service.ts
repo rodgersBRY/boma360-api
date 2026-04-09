@@ -1,4 +1,4 @@
-import { supabase } from '../../config/db';
+import { getDbClient } from '../../config/db';
 
 export interface HealthDueAlert {
   cow_id: string;
@@ -56,6 +56,10 @@ const dateDaysAgo = (days: number): string => {
 };
 
 export class AlertsService {
+  private get db() {
+    return getDbClient();
+  }
+
   async getAlerts(): Promise<AlertsResult> {
     const today = todayDate();
     const recentThreshold = dateDaysAgo(7);
@@ -83,7 +87,7 @@ export class AlertsService {
   }
 
   private async getCows(): Promise<CowRef[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('cows')
       .select('id,tag_number,breed,status');
 
@@ -95,7 +99,7 @@ export class AlertsService {
     today: string,
     activeCowById: Map<string, CowRef>,
   ): Promise<HealthDueAlert[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('health_records')
       .select('id,cow_id,type,next_due_date,description')
       .not('next_due_date', 'is', null)
@@ -124,7 +128,7 @@ export class AlertsService {
     today: string,
     activeCowById: Map<string, CowRef>,
   ): Promise<CalvingDueAlert[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('breeding_records')
       .select('id,cow_id,event_type,expected_calving_date')
       .in('event_type', ['service', 'pregnancy_check'])
@@ -152,7 +156,7 @@ export class AlertsService {
     today: string,
     activeCowById: Map<string, CowRef>,
   ): Promise<NoMilkTodayAlert[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('milk_logs')
       .select('cow_id')
       .eq('log_date', today);
@@ -174,7 +178,7 @@ export class AlertsService {
     recentThreshold: string,
     cowById: Map<string, CowRef>,
   ): Promise<RecentlyTreatedAlert[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('health_records')
       .select('id,cow_id,type,record_date,description')
       .eq('type', 'treatment')

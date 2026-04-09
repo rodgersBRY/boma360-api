@@ -21,6 +21,10 @@ const start = async (): Promise<void> => {
     logger.info(`barn doors open — cattle manager is live on port ${PORT}`);
     logger.info('registered endpoints:');
     logger.info('  GET    /v1/health');
+    logger.info('  POST   /v1/auth/sign-up');
+    logger.info('  POST   /v1/auth/sign-in');
+    logger.info('  POST   /v1/auth/refresh');
+    logger.info('  GET    /v1/auth/me');
     logger.info('  GET    /v1/cows');
     logger.info('  POST   /v1/cows');
     logger.info('  GET    /v1/cows/:id');

@@ -1,4 +1,4 @@
-import { supabase } from '../../config/db';
+import { getDbClient } from '../../config/db';
 
 export interface CowMilkStat {
   cow_id: string;
@@ -61,6 +61,10 @@ const asNumber = (value: unknown): number => {
 const formatDecimal = (value: number): string => value.toFixed(2);
 
 export class DashboardService {
+  private get db() {
+    return getDbClient();
+  }
+
   async getSummary(month?: string): Promise<DashboardResult> {
     const targetMonth = month ?? new Date().toISOString().slice(0, 7);
     const today = todayDate();
@@ -107,7 +111,7 @@ export class DashboardService {
   }
 
   private async getActiveCows(): Promise<CowRef[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('cows')
       .select('id,tag_number,breed')
       .eq('status', 'active');
@@ -120,7 +124,7 @@ export class DashboardService {
     today: string,
     activeCowById: Map<string, CowRef>,
   ): Promise<number> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('breeding_records')
       .select('cow_id')
       .in('event_type', ['service', 'pregnancy_check'])
@@ -137,7 +141,7 @@ export class DashboardService {
   }
 
   private async getCowsInMilk(recentThreshold: string): Promise<number> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('milk_logs')
       .select('cow_id')
       .gte('log_date', recentThreshold);
@@ -148,7 +152,7 @@ export class DashboardService {
   }
 
   private async getTodayTotalMilk(today: string): Promise<number> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('milk_logs')
       .select('litres')
       .eq('log_date', today);
@@ -162,7 +166,7 @@ export class DashboardService {
     start: string,
     endExclusive: string,
   ): Promise<number> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('milk_logs')
       .select('litres')
       .gte('log_date', start)
@@ -177,7 +181,7 @@ export class DashboardService {
     start: string,
     endExclusive: string,
   ): Promise<number> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('expense_logs')
       .select('amount')
       .gte('expense_date', start)
@@ -192,7 +196,7 @@ export class DashboardService {
     start: string,
     endExclusive: string,
   ): Promise<number> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('milk_sales')
       .select('total_amount')
       .gte('sale_date', start)
@@ -209,7 +213,7 @@ export class DashboardService {
     start: string,
     endExclusive: string,
   ): Promise<CowMilkStat[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('milk_logs')
       .select('cow_id,litres')
       .gte('log_date', start)
@@ -245,7 +249,7 @@ export class DashboardService {
     start: string,
     endExclusive: string,
   ): Promise<CowExpenseStat[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.db
       .from('expense_logs')
       .select('cow_id,amount')
       .gte('expense_date', start)

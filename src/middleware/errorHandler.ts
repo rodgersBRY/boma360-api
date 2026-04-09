@@ -6,6 +6,7 @@ interface PgError extends Error {
   code?: string;
   detail?: string;
   column?: string;
+  status?: number;
 }
 
 export const errorHandler = (
@@ -21,6 +22,11 @@ export const errorHandler = (
   }
 
   const pgErr = err as PgError;
+
+  if (typeof pgErr?.status === 'number' && pgErr.status >= 400 && pgErr.status < 500) {
+    res.status(pgErr.status).json({ error: pgErr.message || 'Request failed' });
+    return;
+  }
 
   if (pgErr?.code === '23505') {
     res.status(409).json({ error: 'Record already exists' });

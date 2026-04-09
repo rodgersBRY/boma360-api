@@ -1,4 +1,4 @@
-import { supabase } from '../../config/db';
+import { getDbClient } from '../../config/db';
 import { PostgrestError } from '@supabase/supabase-js';
 import { PaginationParams, PaginatedResult, paginate } from '../../lib/pagination';
 import { CreateMilkSaleInput, MilkSale } from './milk_sales.types';
@@ -16,6 +16,10 @@ const monthBounds = (month: string): { start: string; endExclusive: string } => 
 };
 
 export class MilkSalesService {
+  private get db() {
+    return getDbClient();
+  }
+
   async createSale(input: CreateMilkSaleInput): Promise<MilkSale> {
     const totalAmount = Number(
       (input.litres_sold * input.price_per_litre).toFixed(2),
@@ -33,7 +37,7 @@ export class MilkSalesService {
       payloadWithTotal['sale_date'] = input.sale_date;
     }
 
-    let result = await supabase
+    let result = await this.db
       .from('milk_sales')
       .insert(payloadWithTotal)
       .select('*')
@@ -43,7 +47,7 @@ export class MilkSalesService {
     if (result.error?.code === '428C9') {
       const { total_amount, ...payloadWithoutTotal } = payloadWithTotal;
       void total_amount;
-      result = await supabase
+      result = await this.db
         .from('milk_sales')
         .insert(payloadWithoutTotal)
         .select('*')
@@ -65,7 +69,7 @@ export class MilkSalesService {
     pagination: PaginationParams,
     month?: string,
   ): Promise<PaginatedResult<MilkSale>> {
-    let query = supabase.from('milk_sales').select('*', { count: 'exact' });
+    let query = this.db.from('milk_sales').select('*', { count: 'exact' });
 
     if (month) {
       const { start, endExclusive } = monthBounds(month);
