@@ -1,6 +1,6 @@
 # Milk Sales Module
 
-Records farm-level milk sales. Not tied to individual cows. `total_amount` is computed by the database as `litres_sold * price_per_litre`.
+Records farm-level milk sales. Not tied to individual cows. `total_amount` is computed in API business logic as `litres_sold * price_per_litre`.
 
 ## Endpoints
 
@@ -31,7 +31,7 @@ Records farm-level milk sales. Not tied to individual cows. `total_amount` is co
 | `buyer`           | string            | no       |       |
 | `notes`           | string            | no       |       |
 
-`total_amount` is not accepted in the request — it is always calculated by the database.
+`total_amount` is not accepted in the request — it is always calculated by the API service.
 
 ## Dashboard Integration
 
@@ -50,7 +50,7 @@ milk_sales (
   sale_date       DATE NOT NULL DEFAULT CURRENT_DATE,
   litres_sold     DECIMAL(8,2) NOT NULL,
   price_per_litre DECIMAL(8,2) NOT NULL,
-  total_amount    DECIMAL(12,2) GENERATED ALWAYS AS (litres_sold * price_per_litre) STORED,
+  total_amount    DECIMAL(12,2) NOT NULL,
   buyer           VARCHAR(200),
   notes           TEXT,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()

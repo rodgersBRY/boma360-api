@@ -1,6 +1,6 @@
 # Breeding Records Module
 
-Tracks the full breeding cycle per cow: heat detection, AI/natural service, pregnancy checks, and calvings. When a calving is recorded, a new cow (calf) is automatically created in the same transaction.
+Tracks the full breeding cycle per cow: heat detection, AI/natural service, pregnancy checks, and calvings. When a calving is recorded, a new cow (calf) is automatically created by service logic.
 
 ## Endpoints
 
@@ -27,7 +27,7 @@ Tracks the full breeding cycle per cow: heat detection, AI/natural service, preg
 
 ### Calving (auto-creates calf)
 
-When `event_type` is `calving`, include a `calf` object. The calf is created as a new cow in the same database transaction.
+When `event_type` is `calving`, include a `calf` object. The calf is created as a new cow by the API.
 
 ```json
 {

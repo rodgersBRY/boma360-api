@@ -1,4 +1,5 @@
 import { supabase } from '../../config/db';
+import { PostgrestError } from '@supabase/supabase-js';
 import { PaginationParams, PaginatedResult, paginate } from '../../lib/pagination';
 import { CreateMilkSaleInput, MilkSale } from './milk_sales.types';
 
@@ -16,22 +17,43 @@ const monthBounds = (month: string): { start: string; endExclusive: string } => 
 
 export class MilkSalesService {
   async createSale(input: CreateMilkSaleInput): Promise<MilkSale> {
-    const payload: Record<string, unknown> = {
+    const totalAmount = Number(
+      (input.litres_sold * input.price_per_litre).toFixed(2),
+    );
+
+    const payloadWithTotal: Record<string, unknown> = {
       litres_sold: input.litres_sold,
       price_per_litre: input.price_per_litre,
+      total_amount: totalAmount,
       buyer: input.buyer ?? null,
       notes: input.notes ?? null,
     };
 
     if (input.sale_date !== undefined) {
-      payload['sale_date'] = input.sale_date;
+      payloadWithTotal['sale_date'] = input.sale_date;
     }
 
-    const { data, error } = await supabase
+    let result = await supabase
       .from('milk_sales')
-      .insert(payload)
+      .insert(payloadWithTotal)
       .select('*')
       .maybeSingle();
+
+    // Compatibility path for environments where total_amount is still a generated DB column.
+    if (result.error?.code === '428C9') {
+      const { total_amount, ...payloadWithoutTotal } = payloadWithTotal;
+      void total_amount;
+      result = await supabase
+        .from('milk_sales')
+        .insert(payloadWithoutTotal)
+        .select('*')
+        .maybeSingle();
+    }
+
+    const { data, error } = result as {
+      data: MilkSale | null;
+      error: PostgrestError | null;
+    };
 
     if (error) throw error;
     if (!data) throw new Error('Failed to create milk sale');

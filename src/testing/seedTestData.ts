@@ -38,6 +38,23 @@ const throwIfError = (error: PostgrestError | null): void => {
   if (error) throw error;
 };
 
+const insertMilkSales = async (
+  rows: Array<Record<string, unknown>>,
+): Promise<void> => {
+  const firstAttempt = await supabase.from('milk_sales').insert(rows);
+  if (!firstAttempt.error) return;
+
+  // Compatibility path for environments where total_amount is still generated.
+  if (firstAttempt.error.code === '428C9') {
+    const rowsWithoutTotal = rows.map(({ total_amount, ...rest }) => rest);
+    const retry = await supabase.from('milk_sales').insert(rowsWithoutTotal);
+    throwIfError(retry.error);
+    return;
+  }
+
+  throw firstAttempt.error;
+};
+
 const deleteSeedData = async (): Promise<void> => {
   const cowIds = Object.values(TEST_COW_IDS);
   const recordIds = Object.values(TEST_RECORD_IDS);
@@ -249,28 +266,26 @@ const insertSeedData = async (): Promise<void> => {
     ).error,
   );
 
-  throwIfError(
-    (
-      await supabase.from('milk_sales').insert([
-        {
-          id: TEST_RECORD_IDS.saleToday,
-          sale_date: toDateOnly(today),
-          litres_sold: 32.0,
-          price_per_litre: 58.0,
-          buyer: 'Nyeri Dairy Cooperative',
-          notes: 'Morning delivery.',
-        },
-        {
-          id: TEST_RECORD_IDS.saleTwoDaysAgo,
-          sale_date: toDateOnly(addDays(today, -2)),
-          litres_sold: 28.5,
-          price_per_litre: 57.5,
-          buyer: 'Local milk bar',
-          notes: 'Cash sale.',
-        },
-      ])
-    ).error,
-  );
+  await insertMilkSales([
+    {
+      id: TEST_RECORD_IDS.saleToday,
+      sale_date: toDateOnly(today),
+      litres_sold: 32.0,
+      price_per_litre: 58.0,
+      total_amount: 1856.0,
+      buyer: 'Nyeri Dairy Cooperative',
+      notes: 'Morning delivery.',
+    },
+    {
+      id: TEST_RECORD_IDS.saleTwoDaysAgo,
+      sale_date: toDateOnly(addDays(today, -2)),
+      litres_sold: 28.5,
+      price_per_litre: 57.5,
+      total_amount: 1638.75,
+      buyer: 'Local milk bar',
+      notes: 'Cash sale.',
+    },
+  ]);
 };
 
 export const seedTestData = async (): Promise<void> => {
