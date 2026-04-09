@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from 'express';
-import { logger } from '../config/logger';
+import { NextFunction, Request, Response } from "express";
+import { logger } from "../config/logger";
 
 export const requestResponseLogger = (
   req: Request,
@@ -16,11 +16,18 @@ export const requestResponseLogger = (
     return originalJson(body);
   };
 
-  res.on('finish', () => {
-    logger.debug('%s %s -> %d (%dms)', req.method, req.originalUrl, res.statusCode, Date.now() - startedAt, {
-      requestBody,
-      responseBody,
-    });
+  res.on("finish", () => {
+    logger.debug(
+      "%s %s -> %d (%dms)",
+      req.method,
+      req.originalUrl,
+      res.statusCode,
+      Date.now() - startedAt,
+      {
+        requestBody,
+        responseBody,
+      },
+    );
   });
 
   next();

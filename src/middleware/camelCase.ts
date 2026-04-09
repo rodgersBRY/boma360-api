@@ -17,7 +17,7 @@ const convertKeys = (value: unknown): unknown => {
   return value;
 };
 
-export const camelCaseResponse = (_req: Request, res: Response, next: NextFunction): void => {
+export const camelCaseRsponse = (_req: Request, res: Response, next: NextFunction): void => {
   const originalJson = res.json.bind(res);
   res.json = (body: unknown) => originalJson(convertKeys(body));
   next();

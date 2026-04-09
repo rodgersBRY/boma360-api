@@ -2,8 +2,6 @@ import express, { Application, Request, Response } from "express";
 import helmet from "helmet";
 import cors from "cors";
 import { errorHandler } from "../middleware/errorHandler";
-import { camelCaseResponse } from "../middleware/camelCase";
-import { normalizeBodyKeys } from "../middleware/normalizeBodyKeys";
 import { requestResponseLogger } from "../middleware/requestResponseLogger";
 import { requireAuth, withSupabaseContext } from "../middleware/auth";
 import { authRouter } from "../modules/auth/auth.router";
@@ -25,31 +23,30 @@ export const initializeServer = (): Application => {
     .use(cors())
     .use(express.json())
     .use(requestResponseLogger)
-    .use(normalizeBodyKeys)
-    .use(camelCaseResponse)
     .use(withSupabaseContext);
 
   app.get("/v1/health", async (_req: Request, res: Response) => {
     try {
       const { error } = await supabase.from("cows").select("id").limit(1);
       if (error) throw error;
+
       res.json({ status: "ok", db: "connected" });
     } catch {
       res.status(503).json({ status: "error", db: "disconnected" });
     }
   });
 
-  app.use("/v1/auth", authRouter);
-  app.use(requireAuth);
-
-  app.use("/v1/cows", cowsRouter);
-  app.use("/v1/cows", healthRouter);
-  app.use("/v1/cows", breedingRouter);
-  app.use("/v1/cows", milkRouter);
-  app.use("/v1/cows", expensesRouter);
-  app.use("/v1/milk-sales", milkSalesRouter);
-  app.use("/v1/alerts", alertsRouter);
-  app.use("/v1/dashboard", dashboardRouter);
+  app
+    .use("/v1/auth", authRouter)
+    .use(requireAuth)
+    .use("/v1/cows", cowsRouter)
+    .use("/v1/cows", healthRouter)
+    .use("/v1/cows", breedingRouter)
+    .use("/v1/cows", milkRouter)
+    .use("/v1/cows", expensesRouter)
+    .use("/v1/milk-sales", milkSalesRouter)
+    .use("/v1/alerts", alertsRouter)
+    .use("/v1/dashboard", dashboardRouter);
 
   app.use((_req: Request, res: Response) => {
     res.status(404).json({ error: "Not found" });

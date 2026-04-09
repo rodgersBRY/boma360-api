@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClientOptions } from "@supabase/supabase-js";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "./logger";
 import {
@@ -14,13 +14,13 @@ export const createSupabaseClient = (accessToken?: string): SupabaseClient =>
       autoRefreshToken: false,
       persistSession: false,
     },
-    global: accessToken
-      ? {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      : undefined,
+    ...(accessToken && {
+      global: {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    }),
   });
 
 export const supabase = createSupabaseClient();
@@ -44,5 +44,6 @@ export const getUserFromAccessToken = async (accessToken: string) => {
   if (error) {
     throw error;
   }
+  
   return data.user;
 };
