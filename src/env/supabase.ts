@@ -12,10 +12,13 @@ export const SUPABASE_URI =
   process.env['DIRECT_URL'] ??
   '';
 export const SUPABASE_ANON_KEY = process.env['SUPABASE_ANON_KEY'] ?? '';
+export const SUPABASE_RUNTIME_KEY =
+  process.env['SUPABASE_RUNTIME_KEY'] ??
+  process.env['SUPABASE_ANON_KEY'] ??
+  required('SUPABASE_ANON_KEY');
 export const SUPABASE_SERVICE_ROLE_KEY =
   process.env['SUPABASE_SERVICE_ROLE_KEY'] ??
-  process.env['SUPABASE_ANON_KEY'] ??
-  required('SUPABASE_SERVICE_ROLE_KEY');
+  '';
 
 export const SUPABASE_PROJECT_REF =
   process.env['SUPABASE_PROJECT_REF'] ?? 'local-dev';

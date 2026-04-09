@@ -2,11 +2,11 @@ import { createClient } from "@supabase/supabase-js";
 import { logger } from "./logger";
 import {
   SUPABASE_PROJECT_REF,
-  SUPABASE_SERVICE_ROLE_KEY,
+  SUPABASE_RUNTIME_KEY,
   SUPABASE_URL,
 } from "../env/supabase";
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+export const supabase = createClient(SUPABASE_URL, SUPABASE_RUNTIME_KEY, {
   auth: {
     autoRefreshToken: false,
     persistSession: false,

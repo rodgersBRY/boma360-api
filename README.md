@@ -114,8 +114,9 @@ NODE_ENV=development
 PORT=3001
 SUPABASE_PROJECT_REF=your-project-ref
 SUPABASE_URL=https://your-project-ref.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_RUNTIME_KEY=your-anon-key
 SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 SUPABASE_URI=postgresql://postgres:password@db.your-project-ref.supabase.co:5432/postgres
 DATABASE_URL=postgresql://postgres.your-project-ref:password@aws-0-region.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
 DIRECT_URL=postgresql://postgres:password@db.your-project-ref.supabase.co:5432/postgres
@@ -156,6 +157,8 @@ The API includes a repeatable test seed for local development and manual QA.
 - Seed during startup: `SEED_TEST_DATA_ON_STARTUP=true npm run dev`
 - Production safety: startup seeding is skipped when `NODE_ENV=production`
 
+`npm run seed:test` automatically uses `SUPABASE_SERVICE_ROLE_KEY` when `SUPABASE_RUNTIME_KEY` is not set, so seed data can be inserted even if runtime anon RLS policies are restrictive.
+
 The seed creates linked cows, health records, breeding records, milk logs, expense logs, and milk sales so the client has realistic data for lists, alerts, and dashboard screens.
 
 More detail: [src/testing/README.md](src/testing/README.md)
@@ -164,7 +167,7 @@ More detail: [src/testing/README.md](src/testing/README.md)
 
 Supabase runs PostgreSQL under the hood, so Prisma still uses the `postgresql` provider for migrations. The schema only declares the provider, while `prisma.config.ts` supplies the Migrate connection. `DIRECT_URL` is used first for migrations, with fallback to `DATABASE_URL`, then `SUPABASE_URI`.
 
-The API runtime uses the Supabase JavaScript SDK with a server-side service-role key (`SUPABASE_SERVICE_ROLE_KEY`) for database reads/writes.
+The API runtime uses the Supabase JavaScript SDK with `SUPABASE_RUNTIME_KEY` (defaults to `SUPABASE_ANON_KEY`) so RLS policies are enforced by default. Keep `SUPABASE_SERVICE_ROLE_KEY` only for explicit admin tasks.
 
 All tables use UUID primary keys. Cows are never hard-deleted — use `status` (`active`, `sold`, `dead`). Foreign keys use `ON DELETE RESTRICT` to prevent orphaned records.
 

@@ -19,7 +19,6 @@ export class MilkSalesService {
     const payload: Record<string, unknown> = {
       litres_sold: input.litres_sold,
       price_per_litre: input.price_per_litre,
-      total_amount: input.total_amount,
       buyer: input.buyer ?? null,
       notes: input.notes ?? null,
     };
