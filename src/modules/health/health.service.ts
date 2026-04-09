@@ -1,11 +1,15 @@
-import { getDbClient } from '../../config/db';
-import { CowNotFoundError, RecordNotFoundError } from '../../config/errors';
-import { PaginationParams, PaginatedResult, paginate } from '../../lib/pagination';
+import { getDbClient } from "../../config/db";
+import { CowNotFoundError, RecordNotFoundError } from "../../config/errors";
+import {
+  PaginationParams,
+  PaginatedResult,
+  paginate,
+} from "../../lib/pagination";
 import {
   CreateHealthRecordInput,
   HealthRecord,
   UpdateHealthRecordInput,
-} from './health.types';
+} from "./health.types";
 
 export class HealthService {
   private get db() {
@@ -14,9 +18,9 @@ export class HealthService {
 
   private async ensureCowExists(cowId: string): Promise<void> {
     const { data, error } = await this.db
-      .from('cows')
-      .select('id')
-      .eq('id', cowId)
+      .from("cows")
+      .select("id")
+      .eq("id", cowId)
       .maybeSingle();
 
     if (error) throw error;
@@ -38,20 +42,21 @@ export class HealthService {
     };
 
     if (input.next_due_date !== undefined) {
-      payload['next_due_date'] = input.next_due_date;
+      payload["next_due_date"] = input.next_due_date;
     }
+
     if (input.record_date !== undefined) {
-      payload['record_date'] = input.record_date;
+      payload["record_date"] = input.record_date;
     }
 
     const { data, error } = await this.db
-      .from('health_records')
+      .from("health_records")
       .insert(payload)
-      .select('*')
+      .select("*")
       .maybeSingle();
 
     if (error) throw error;
-    if (!data) throw new Error('Failed to create health record');
+    if (!data) throw new Error("Failed to create health record");
 
     return data;
   }
@@ -63,11 +68,11 @@ export class HealthService {
     await this.ensureCowExists(cowId);
 
     const { data, error, count } = await this.db
-      .from('health_records')
-      .select('*', { count: 'exact' })
-      .eq('cow_id', cowId)
-      .order('record_date', { ascending: false })
-      .order('created_at', { ascending: false })
+      .from("health_records")
+      .select("*", { count: "exact" })
+      .eq("cow_id", cowId)
+      .order("record_date", { ascending: false })
+      .order("created_at", { ascending: false })
       .range(pagination.offset, pagination.offset + pagination.limit - 1);
 
     if (error) throw error;
@@ -77,14 +82,14 @@ export class HealthService {
 
   async getRecordById(cowId: string, id: string): Promise<HealthRecord> {
     const { data, error } = await this.db
-      .from('health_records')
-      .select('*')
-      .eq('id', id)
-      .eq('cow_id', cowId)
+      .from("health_records")
+      .select("*")
+      .eq("id", id)
+      .eq("cow_id", cowId)
       .maybeSingle();
 
     if (error) throw error;
-    if (!data) throw new RecordNotFoundError('Health record');
+    if (!data) throw new RecordNotFoundError("Health record");
 
     return data;
   }
@@ -97,22 +102,27 @@ export class HealthService {
     const updates: Partial<HealthRecord> = {};
 
     if (input.type !== undefined) updates.type = input.type;
-    if (input.description !== undefined) updates.description = input.description;
-    if ('drug_used' in input) updates.drug_used = input.drug_used ?? null;
-    if ('next_due_date' in input)
+
+    if (input.description !== undefined)
+      updates.description = input.description;
+
+    if ("drug_used" in input) updates.drug_used = input.drug_used ?? null;
+
+    if ("next_due_date" in input)
       updates.next_due_date = input.next_due_date ?? null;
+    
     if (input.notes !== undefined) updates.notes = input.notes;
 
     const { data, error } = await this.db
-      .from('health_records')
+      .from("health_records")
       .update(updates)
-      .eq('id', id)
-      .eq('cow_id', cowId)
-      .select('*')
+      .eq("id", id)
+      .eq("cow_id", cowId)
+      .select("*")
       .maybeSingle();
 
     if (error) throw error;
-    if (!data) throw new RecordNotFoundError('Health record');
+    if (!data) throw new RecordNotFoundError("Health record");
 
     return data;
   }
