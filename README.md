@@ -1,6 +1,6 @@
 # Cattle Manager API
 
-A REST API for daily dairy cattle farm management. Built with Node.js, TypeScript, Express, and PostgreSQL.
+A REST API for daily dairy cattle farm management. Built with Node.js, TypeScript, Express, and Supabase-managed PostgreSQL.
 
 ## Overview
 
@@ -21,7 +21,7 @@ The API covers the full lifecycle of a dairy operation:
 | Runtime | Node.js |
 | Language | TypeScript 5.8 |
 | Framework | Express 4 |
-| Database | PostgreSQL 14+ |
+| Database | Supabase Postgres |
 | Schema/Migrations | Prisma 6 |
 | Validation | Zod |
 | Logging | Winston |
@@ -33,7 +33,7 @@ api/
 ├── src/
 │   ├── app.ts                  # Entry point
 │   ├── config/
-│   │   ├── db.ts               # PostgreSQL pool and transaction helper
+│   │   ├── db.ts               # Supabase/Postgres pool and transaction helper
 │   │   ├── express.ts          # Express setup, middleware, route mounting
 │   │   ├── logger.ts           # Winston logger
 │   │   └── errors.ts           # Custom error classes
@@ -97,7 +97,7 @@ All routes are prefixed with `/v1/`.
 ### Requirements
 
 - Node.js 18+
-- PostgreSQL 14+
+- A Supabase project with Postgres enabled
 
 ### Install
 
@@ -112,7 +112,11 @@ Copy `.env.example` to `.env` and fill in your values:
 ```env
 NODE_ENV=development
 PORT=3001
-DATABASE_URL=postgresql://user:password@localhost:5432/cattle_manager
+SUPABASE_PROJECT_REF=your-project-ref
+DATABASE_URL=postgresql://postgres.your-project-ref:password@aws-0-region.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
+DIRECT_URL=postgresql://postgres:password@db.your-project-ref.supabase.co:5432/postgres
+DB_SSL=true
+DB_SSL_REJECT_UNAUTHORIZED=false
 ```
 
 ### Run Migrations
@@ -155,6 +159,8 @@ The seed creates linked cows, health records, breeding records, milk logs, expen
 More detail: [src/testing/README.md](src/testing/README.md)
 
 ## Database Design
+
+Supabase runs PostgreSQL under the hood, so Prisma still uses the `postgresql` provider. The schema only declares the provider, while `prisma.config.ts` supplies the Migrate connection. `DATABASE_URL` is intended for the pooled application connection, while `DIRECT_URL` is used for direct Prisma migration access. If `DIRECT_URL` is not set, the config falls back to `DATABASE_URL` so local development does not break.
 
 All tables use UUID primary keys. Cows are never hard-deleted — use `status` (`active`, `sold`, `dead`). Foreign keys use `ON DELETE RESTRICT` to prevent orphaned records.
 
