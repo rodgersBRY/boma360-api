@@ -1,6 +1,6 @@
 # Milk Logs Module
 
-Records daily milk production per cow. One entry per cow per day (enforced by a unique constraint). Supports multiple milking periods per day (morning, afternoon, evening).
+Records daily milk production per cow. Supports multiple milking periods per day (morning, afternoon, evening), with at most one log per cow/date/period.
 
 ## Endpoints
 
@@ -27,16 +27,16 @@ Records daily milk production per cow. One entry per cow per day (enforced by a 
 | ---------- | ------------------------------------- | -------- | ------------------- |
 | `litres`   | number                                | yes      | Decimal, e.g. `8.5` |
 | `period`   | `morning` \| `afternoon` \| `evening` | yes      |                     |
-| `log_date` | date (YYYY-MM-DD)                     | yes      |                     |
+| `log_date` | date (YYYY-MM-DD)                     | no       | Defaults to today   |
 | `notes`    | string                                | no       |                     |
 
-A `409 Conflict` is returned if a log already exists for that cow on that date.
+A `409 Conflict` is returned if a log already exists for the same cow, date, and period.
 
 ## Update a Milk Log
 
 `PATCH /v1/cows/:cowId/milk-logs/:id`
 
-Updatable fields: `litres`, `notes`.
+Updatable fields: `litres`, `period`, `notes`.
 
 ## Alerts Integration
 
@@ -63,7 +63,7 @@ milk_logs (
   period     VARCHAR(10) NOT NULL,   -- 'morning' | 'afternoon' | 'evening'
   notes      TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (cow_id, log_date)
+  UNIQUE (cow_id, log_date, period)
 )
 ```
 

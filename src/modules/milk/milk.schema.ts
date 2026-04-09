@@ -6,7 +6,10 @@ export const createMilkLogSchema = z.object({
   litres: litres,
   period: z
     .string()
-    .regex(/^(morning|evening)$/, 'Must be "morning" or "evening"'),
+    .regex(
+      /^(morning|afternoon|evening)$/,
+      'Must be "morning", "afternoon", or "evening"',
+    ),
   log_date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD")
@@ -19,7 +22,10 @@ export const updateMilkLogSchema = z
     litres: litres.optional(),
     period: z
       .string()
-      .regex(/^(morning|evening)$/, 'Must be "morning" or "evening"')
+      .regex(
+        /^(morning|afternoon|evening)$/,
+        'Must be "morning", "afternoon", or "evening"',
+      )
       .optional(),
     notes: z.string().optional(),
   })

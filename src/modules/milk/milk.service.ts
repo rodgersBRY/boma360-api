@@ -1,7 +1,11 @@
-import { getDbClient } from '../../config/db';
-import { CowNotFoundError, RecordNotFoundError } from '../../config/errors';
-import { PaginationParams, PaginatedResult, paginate } from '../../lib/pagination';
-import { CreateMilkLogInput, MilkLog, UpdateMilkLogInput } from './milk.types';
+import { getDbClient } from "../../config/db";
+import { CowNotFoundError, RecordNotFoundError } from "../../config/errors";
+import {
+  PaginationParams,
+  PaginatedResult,
+  paginate,
+} from "../../lib/pagination";
+import { CreateMilkLogInput, MilkLog, UpdateMilkLogInput } from "./milk.types";
 
 export class MilkService {
   private get db() {
@@ -10,9 +14,9 @@ export class MilkService {
 
   private async ensureCowExists(cowId: string): Promise<void> {
     const { data, error } = await this.db
-      .from('cows')
-      .select('id')
-      .eq('id', cowId)
+      .from("cows")
+      .select("id")
+      .eq("id", cowId)
       .maybeSingle();
 
     if (error) throw error;
@@ -30,17 +34,17 @@ export class MilkService {
     };
 
     if (input.log_date !== undefined) {
-      payload['log_date'] = input.log_date;
+      payload["log_date"] = input.log_date;
     }
 
     const { data, error } = await this.db
-      .from('milk_logs')
+      .from("milk_logs")
       .insert(payload)
-      .select('*')
+      .select("*")
       .maybeSingle();
 
     if (error) throw error;
-    if (!data) throw new Error('Failed to create milk log');
+    if (!data) throw new Error("Failed to create milk log");
 
     return data;
   }
@@ -52,10 +56,10 @@ export class MilkService {
     await this.ensureCowExists(cowId);
 
     const { data, error, count } = await this.db
-      .from('milk_logs')
-      .select('*', { count: 'exact' })
-      .eq('cow_id', cowId)
-      .order('log_date', { ascending: false })
+      .from("milk_logs")
+      .select("*", { count: "exact" })
+      .eq("cow_id", cowId)
+      .order("log_date", { ascending: false })
       .range(pagination.offset, pagination.offset + pagination.limit - 1);
 
     if (error) throw error;
@@ -75,15 +79,15 @@ export class MilkService {
     if (input.notes !== undefined) updates.notes = input.notes;
 
     const { data, error } = await this.db
-      .from('milk_logs')
+      .from("milk_logs")
       .update(updates)
-      .eq('id', id)
-      .eq('cow_id', cowId)
-      .select('*')
+      .eq("id", id)
+      .eq("cow_id", cowId)
+      .select("*")
       .maybeSingle();
 
     if (error) throw error;
-    if (!data) throw new RecordNotFoundError('Milk log');
+    if (!data) throw new RecordNotFoundError("Milk log");
 
     return data;
   }

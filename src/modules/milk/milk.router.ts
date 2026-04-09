@@ -8,8 +8,8 @@ export const milkRouter = Router();
 milkRouter
   .route("/:cowId/milk-logs")
   .get(listMilkLogs)
-    .post(validate(createMilkLogSchema), createMilkLog);
-  
+  .post(validate(createMilkLogSchema), createMilkLog);
+
 milkRouter
   .route("/:cowId/milk-logs/:id")
   .patch(validate(updateMilkLogSchema), updateMilkLog);
