@@ -1,4 +1,4 @@
-export type ExpenseCategory = 'treatment' | 'drugs' | 'supplement' | 'other';
+export type ExpenseCategory = "treatment" | "drugs" | "supplement" | "other";
 
 export interface ExpenseLog {
   id: string;
