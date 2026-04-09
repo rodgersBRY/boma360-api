@@ -61,6 +61,26 @@ export const errorHandler = (
     return;
   }
 
+  if (pgErr?.code === "42501") {
+    const tableMatch = pgErr.message?.match(/table "([^"]+)"/i);
+    const tableName = tableMatch?.[1];
+    const isRlsViolation = pgErr.message
+      ?.toLowerCase()
+      .includes("row-level security");
+
+    if (isRlsViolation) {
+      res.status(403).json({
+        error: tableName
+          ? `RLS denied access to "${tableName}". Ensure a Supabase policy allows this action for role "authenticated".`
+          : 'RLS denied access. Ensure a Supabase policy allows this action for role "authenticated".',
+      });
+      return;
+    }
+
+    res.status(403).json({ error: "Insufficient database privileges" });
+    return;
+  }
+
   logger.error("Unhandled error %o", err);
   res.status(500).json({ error: "Internal server error" });
 };
