@@ -4,6 +4,7 @@ import cors from "cors";
 import { errorHandler } from "../middleware/errorHandler";
 import { requestResponseLogger } from "../middleware/requestResponseLogger";
 import { requireAuth, withSupabaseContext } from "../middleware/auth";
+import { globalRateLimit } from "../middleware/rateLimit";
 import { authRouter } from "../modules/auth/auth.router";
 import { cowsRouter } from "../modules/cows/cows.router";
 import { healthRouter } from "../modules/health/health.router";
@@ -23,6 +24,7 @@ export const initializeServer = (): Application => {
     .use(cors())
     .use(express.json())
     .use(requestResponseLogger)
+    .use(globalRateLimit)
     .use(withSupabaseContext);
 
   app.get("/v1/health", async (_req: Request, res: Response) => {
