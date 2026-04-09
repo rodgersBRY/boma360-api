@@ -63,9 +63,11 @@ export class BreedingService {
           .from('breeding_records')
           .delete()
           .eq('id', breedingRecord.id);
+        
         if (rollbackError) {
           logger.warn('failed to rollback calving record after calf insert error: %o', rollbackError);
         }
+        
         if (calfError) throw calfError;
         throw new Error('Failed to create calf after calving record insert');
       }
