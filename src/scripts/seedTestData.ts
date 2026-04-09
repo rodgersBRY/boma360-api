@@ -1,12 +1,11 @@
 import 'dotenv/config';
-import { connectDB, pool } from '../config/db';
+import { connectDB } from '../config/db';
 import { logger } from '../config/logger';
 import { seedTestData } from '../testing/seedTestData';
 
 const run = async (): Promise<void> => {
   await connectDB();
   await seedTestData();
-  await pool.end();
 };
 
 run().catch((error) => {

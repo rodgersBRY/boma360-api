@@ -13,7 +13,7 @@ import { expensesRouter } from "../modules/expenses/expenses.router";
 import { milkSalesRouter } from "../modules/milk_sales/milk_sales.router";
 import { alertsRouter } from "../modules/alerts/alerts.router";
 import { dashboardRouter } from "../modules/dashboard/dashboard.router";
-import { pool } from "./db";
+import { supabase } from "./db";
 
 export const initializeServer = (): Application => {
   const app = express();
@@ -28,8 +28,8 @@ export const initializeServer = (): Application => {
 
   app.get("/v1/health", async (_req: Request, res: Response) => {
     try {
-      const client = await pool.connect();
-      client.release();
+      const { error } = await supabase.from("cows").select("id").limit(1);
+      if (error) throw error;
       res.json({ status: "ok", db: "connected" });
     } catch {
       res.status(503).json({ status: "error", db: "disconnected" });

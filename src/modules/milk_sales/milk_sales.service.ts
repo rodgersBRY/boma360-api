@@ -1,37 +1,63 @@
-import { pool } from '../../config/db';
+import { supabase } from '../../config/db';
 import { PaginationParams, PaginatedResult, paginate } from '../../lib/pagination';
-import { MilkSale, CreateMilkSaleInput } from './milk_sales.types';
+import { CreateMilkSaleInput, MilkSale } from './milk_sales.types';
+
+const monthBounds = (month: string): { start: string; endExclusive: string } => {
+  const [yearRaw, monthRaw] = month.split('-');
+  const year = Number(yearRaw);
+  const monthIndex = Number(monthRaw) - 1;
+  const start = new Date(Date.UTC(year, monthIndex, 1));
+  const end = new Date(Date.UTC(year, monthIndex + 1, 1));
+  return {
+    start: start.toISOString().slice(0, 10),
+    endExclusive: end.toISOString().slice(0, 10),
+  };
+};
 
 export class MilkSalesService {
   async createSale(input: CreateMilkSaleInput): Promise<MilkSale> {
-    const { rows } = await pool.query<MilkSale>(
-      `INSERT INTO milk_sales (sale_date, litres_sold, price_per_litre, total_amount, buyer, notes)
-       VALUES (COALESCE($1::date, CURRENT_DATE), $2, $3, $4, $5, $6)
-       RETURNING *`,
-      [input.sale_date ?? null, input.litres_sold, input.price_per_litre, input.total_amount ?? null, input.buyer ?? null, input.notes ?? null]
-    );
+    const payload: Record<string, unknown> = {
+      litres_sold: input.litres_sold,
+      price_per_litre: input.price_per_litre,
+      total_amount: input.total_amount,
+      buyer: input.buyer ?? null,
+      notes: input.notes ?? null,
+    };
 
-    return rows[0]!;
+    if (input.sale_date !== undefined) {
+      payload['sale_date'] = input.sale_date;
+    }
+
+    const { data, error } = await supabase
+      .from('milk_sales')
+      .insert(payload)
+      .select('*')
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) throw new Error('Failed to create milk sale');
+
+    return data;
   }
 
-  async getSales(pagination: PaginationParams, month?: string): Promise<PaginatedResult<MilkSale>> {
-    const conditions = month ? `WHERE to_char(sale_date, 'YYYY-MM') = $1` : '';
-    const baseParams = month ? [month] : [];
+  async getSales(
+    pagination: PaginationParams,
+    month?: string,
+  ): Promise<PaginatedResult<MilkSale>> {
+    let query = supabase.from('milk_sales').select('*', { count: 'exact' });
 
-    const { rows: countRows } = await pool.query<{ count: string }>(
-      `SELECT COUNT(*) AS count FROM milk_sales ${conditions}`,
-      baseParams
-    );
+    if (month) {
+      const { start, endExclusive } = monthBounds(month);
+      query = query.gte('sale_date', start).lt('sale_date', endExclusive);
+    }
 
-    const total = parseInt(countRows[0]!.count, 10);
+    const { data, error, count } = await query
+      .order('sale_date', { ascending: false })
+      .range(pagination.offset, pagination.offset + pagination.limit - 1);
 
-    const limitIdx = baseParams.length + 1;
-    const { rows } = await pool.query<MilkSale>(
-      `SELECT * FROM milk_sales ${conditions} ORDER BY sale_date DESC LIMIT $${limitIdx} OFFSET $${limitIdx + 1}`,
-      [...baseParams, pagination.limit, pagination.offset]
-    );
-    
-    return paginate(rows, total, pagination);
+    if (error) throw error;
+
+    return paginate(data ?? [], count ?? 0, pagination);
   }
 }
 

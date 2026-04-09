@@ -1,37 +1,63 @@
-import { pool } from '../../config/db';
+import { supabase } from '../../config/db';
 import { CowNotFoundError } from '../../config/errors';
 import { PaginationParams, PaginatedResult, paginate } from '../../lib/pagination';
-import { ExpenseLog, CreateExpenseInput } from './expenses.types';
+import { CreateExpenseInput, ExpenseLog } from './expenses.types';
 
 export class ExpenseService {
-  async createExpense(cowId: string, input: CreateExpenseInput): Promise<ExpenseLog> {
-    const { rowCount } = await pool.query('SELECT 1 FROM cows WHERE id = $1', [cowId]);
-    if (!rowCount) throw new CowNotFoundError();
+  private async ensureCowExists(cowId: string): Promise<void> {
+    const { data, error } = await supabase
+      .from('cows')
+      .select('id')
+      .eq('id', cowId)
+      .maybeSingle();
 
-    const { rows } = await pool.query<ExpenseLog>(
-      `INSERT INTO expense_logs (cow_id, category, amount, expense_date, notes)
-       VALUES ($1, $2, $3, COALESCE($4::date, CURRENT_DATE), $5)
-       RETURNING *`,
-      [cowId, input.category, input.amount, input.expense_date ?? null, input.notes ?? null]
-    );
-    return rows[0]!;
+    if (error) throw error;
+    if (!data) throw new CowNotFoundError();
   }
 
-  async getExpensesByCow(cowId: string, pagination: PaginationParams): Promise<PaginatedResult<ExpenseLog>> {
-    const { rowCount } = await pool.query('SELECT 1 FROM cows WHERE id = $1', [cowId]);
-    if (!rowCount) throw new CowNotFoundError();
+  async createExpense(cowId: string, input: CreateExpenseInput): Promise<ExpenseLog> {
+    await this.ensureCowExists(cowId);
 
-    const { rows: countRows } = await pool.query<{ count: string }>(
-      'SELECT COUNT(*) AS count FROM expense_logs WHERE cow_id = $1',
-      [cowId]
-    );
-    const total = parseInt(countRows[0]!.count, 10);
+    const payload: Record<string, unknown> = {
+      cow_id: cowId,
+      category: input.category,
+      amount: input.amount,
+      notes: input.notes ?? null,
+    };
 
-    const { rows } = await pool.query<ExpenseLog>(
-      'SELECT * FROM expense_logs WHERE cow_id = $1 ORDER BY expense_date DESC, created_at DESC LIMIT $2 OFFSET $3',
-      [cowId, pagination.limit, pagination.offset]
-    );
-    return paginate(rows, total, pagination);
+    if (input.expense_date !== undefined) {
+      payload['expense_date'] = input.expense_date;
+    }
+
+    const { data, error } = await supabase
+      .from('expense_logs')
+      .insert(payload)
+      .select('*')
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) throw new Error('Failed to create expense');
+
+    return data;
+  }
+
+  async getExpensesByCow(
+    cowId: string,
+    pagination: PaginationParams,
+  ): Promise<PaginatedResult<ExpenseLog>> {
+    await this.ensureCowExists(cowId);
+
+    const { data, error, count } = await supabase
+      .from('expense_logs')
+      .select('*', { count: 'exact' })
+      .eq('cow_id', cowId)
+      .order('expense_date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .range(pagination.offset, pagination.offset + pagination.limit - 1);
+
+    if (error) throw error;
+
+    return paginate(data ?? [], count ?? 0, pagination);
   }
 }
 

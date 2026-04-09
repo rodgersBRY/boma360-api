@@ -71,7 +71,7 @@ model MilkLog {
 
   cow Cow @relation(fields: [cow_id], references: [id], onDelete: Restrict)
 
-  @@unique([cow_id, log_date], name: "uq_milk_log_cow_date")
+  @@unique([cow_id, log_date, period], name: "uq_milk_log_cow_date_period")
   @@index([cow_id])
   @@index([log_date])
   @@map("milk_logs")

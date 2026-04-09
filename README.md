@@ -22,7 +22,7 @@ The API covers the full lifecycle of a dairy operation:
 | Language | TypeScript 5.8 |
 | Framework | Express 4 |
 | Database | Supabase Postgres |
-| Schema/Migrations | Prisma 6 |
+| Schema/Migrations | Prisma 7 |
 | Validation | Zod |
 | Logging | Winston |
 
@@ -33,7 +33,7 @@ api/
 ├── src/
 │   ├── app.ts                  # Entry point
 │   ├── config/
-│   │   ├── db.ts               # Supabase/Postgres pool and transaction helper
+│   │   ├── db.ts               # Supabase SDK client setup
 │   │   ├── express.ts          # Express setup, middleware, route mounting
 │   │   ├── logger.ts           # Winston logger
 │   │   └── errors.ts           # Custom error classes
@@ -70,7 +70,7 @@ Each module follows the same internal structure:
 modules/{name}/
 ├── {name}.router.ts      # Route definitions
 ├── {name}.controller.ts  # Request/response handling
-├── {name}.service.ts     # Business logic and SQL
+├── {name}.service.ts     # Business logic and Supabase queries
 ├── {name}.schema.ts      # Zod validation schemas
 └── {name}.types.ts       # TypeScript types
 ```
@@ -113,10 +113,12 @@ Copy `.env.example` to `.env` and fill in your values:
 NODE_ENV=development
 PORT=3001
 SUPABASE_PROJECT_REF=your-project-ref
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_URI=postgresql://postgres:password@db.your-project-ref.supabase.co:5432/postgres
 DATABASE_URL=postgresql://postgres.your-project-ref:password@aws-0-region.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
 DIRECT_URL=postgresql://postgres:password@db.your-project-ref.supabase.co:5432/postgres
-DB_SSL=true
-DB_SSL_REJECT_UNAUTHORIZED=false
 ```
 
 ### Run Migrations
@@ -160,7 +162,9 @@ More detail: [src/testing/README.md](src/testing/README.md)
 
 ## Database Design
 
-Supabase runs PostgreSQL under the hood, so Prisma still uses the `postgresql` provider. The schema only declares the provider, while `prisma.config.ts` supplies the Migrate connection. `DATABASE_URL` is intended for the pooled application connection, while `DIRECT_URL` is used for direct Prisma migration access. If `DIRECT_URL` is not set, the config falls back to `DATABASE_URL` so local development does not break.
+Supabase runs PostgreSQL under the hood, so Prisma still uses the `postgresql` provider for migrations. The schema only declares the provider, while `prisma.config.ts` supplies the Migrate connection. `DIRECT_URL` is used first for migrations, with fallback to `DATABASE_URL`, then `SUPABASE_URI`.
+
+The API runtime uses the Supabase JavaScript SDK with a server-side service-role key (`SUPABASE_SERVICE_ROLE_KEY`) for database reads/writes.
 
 All tables use UUID primary keys. Cows are never hard-deleted — use `status` (`active`, `sold`, `dead`). Foreign keys use `ON DELETE RESTRICT` to prevent orphaned records.
 

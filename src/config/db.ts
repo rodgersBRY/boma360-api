@@ -1,44 +1,24 @@
-import { Pool, PoolClient } from "pg";
+import { createClient } from "@supabase/supabase-js";
 import { logger } from "./logger";
 import {
-  DATABASE_URL,
-  DB_SSL,
-  DB_SSL_REJECT_UNAUTHORIZED,
   SUPABASE_PROJECT_REF,
+  SUPABASE_SERVICE_ROLE_KEY,
+  SUPABASE_URL,
 } from "../env/supabase";
 
-export const pool = new Pool({
-  connectionString: DATABASE_URL,
-  max: 10,
-  idleTimeoutMillis: 30000,
-  ssl: DB_SSL ? { rejectUnauthorized: DB_SSL_REJECT_UNAUTHORIZED } : undefined,
+export const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
 });
 
 export const connectDB = async (): Promise<void> => {
-  const client = await pool.connect();
+  const { error } = await supabase.from("cows").select("id").limit(1);
 
-  client.release();
+  if (error) {
+    throw error;
+  }
 
   logger.info(`db-connected: <supabase:${SUPABASE_PROJECT_REF}>`);
-};
-
-export const withTransaction = async <T>(
-  fn: (client: PoolClient) => Promise<T>,
-): Promise<T> => {
-  const client = await pool.connect();
-  try {
-    await client.query("BEGIN");
-
-    const result = await fn(client);
-
-    await client.query("COMMIT");
-
-    return result;
-  } catch (err) {
-    await client.query("ROLLBACK");
-
-    throw err;
-  } finally {
-    client.release();
-  }
 };

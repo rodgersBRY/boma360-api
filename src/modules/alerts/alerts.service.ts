@@ -1,4 +1,4 @@
-import { pool } from '../../config/db';
+import { supabase } from '../../config/db';
 
 export interface HealthDueAlert {
   cow_id: string;
@@ -41,74 +41,162 @@ export interface AlertsResult {
   recently_treated: RecentlyTreatedAlert[];
 }
 
+interface CowRef {
+  id: string;
+  tag_number: string;
+  breed: string;
+  status: string;
+}
+
+const todayDate = (): string => new Date().toISOString().slice(0, 10);
+const dateDaysAgo = (days: number): string => {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() - days);
+  return date.toISOString().slice(0, 10);
+};
+
 export class AlertsService {
   async getAlerts(): Promise<AlertsResult> {
-    const [healthDue, calvingDue, noMilkToday, recentlyTreated] = await Promise.all([
-      this.getHealthDue(),
-      this.getCalvingDue(),
-      this.getNoMilkToday(),
-      this.getRecentlyTreated(),
-    ]);
+    const today = todayDate();
+    const recentThreshold = dateDaysAgo(7);
 
-    return { health_due: healthDue, calving_due: calvingDue, no_milk_today: noMilkToday, recently_treated: recentlyTreated };
-  }
-
-  private async getHealthDue(): Promise<HealthDueAlert[]> {
-    const { rows } = await pool.query<HealthDueAlert>(
-      `SELECT c.id AS cow_id, c.tag_number, c.breed,
-              h.id AS record_id, h.type, h.next_due_date, h.description
-       FROM health_records h
-       JOIN cows c ON c.id = h.cow_id
-       WHERE h.next_due_date <= CURRENT_DATE
-         AND c.status = 'active'
-       ORDER BY h.next_due_date ASC`
+    const cows = await this.getCows();
+    const cowById = new Map(cows.map((cow) => [cow.id, cow]));
+    const activeCowById = new Map(
+      cows.filter((cow) => cow.status === 'active').map((cow) => [cow.id, cow]),
     );
 
-    return rows;
+    const [healthDue, calvingDue, noMilkToday, recentlyTreated] =
+      await Promise.all([
+        this.getHealthDue(today, activeCowById),
+        this.getCalvingDue(today, activeCowById),
+        this.getNoMilkToday(today, activeCowById),
+        this.getRecentlyTreated(recentThreshold, cowById),
+      ]);
+
+    return {
+      health_due: healthDue,
+      calving_due: calvingDue,
+      no_milk_today: noMilkToday,
+      recently_treated: recentlyTreated,
+    };
   }
 
-  private async getCalvingDue(): Promise<CalvingDueAlert[]> {
-    const { rows } = await pool.query<CalvingDueAlert>(
-      `SELECT c.id AS cow_id, c.tag_number, c.breed,
-              b.id AS breeding_record_id, b.expected_calving_date
-       FROM breeding_records b
-       JOIN cows c ON c.id = b.cow_id
-       WHERE b.expected_calving_date <= CURRENT_DATE
-         AND b.event_type IN ('service', 'pregnancy_check')
-         AND c.status = 'active'
-       ORDER BY b.expected_calving_date ASC`
-    );
+  private async getCows(): Promise<CowRef[]> {
+    const { data, error } = await supabase
+      .from('cows')
+      .select('id,tag_number,breed,status');
 
-    return rows;
+    if (error) throw error;
+    return data ?? [];
   }
 
-  private async getNoMilkToday(): Promise<NoMilkTodayAlert[]> {
-    const { rows } = await pool.query<NoMilkTodayAlert>(
-      `SELECT c.id AS cow_id, c.tag_number, c.breed
-       FROM cows c
-       WHERE c.status = 'active'
-         AND NOT EXISTS (
-           SELECT 1 FROM milk_logs m
-           WHERE m.cow_id = c.id AND m.log_date = CURRENT_DATE
-         )
-       ORDER BY c.tag_number ASC`
-    );
+  private async getHealthDue(
+    today: string,
+    activeCowById: Map<string, CowRef>,
+  ): Promise<HealthDueAlert[]> {
+    const { data, error } = await supabase
+      .from('health_records')
+      .select('id,cow_id,type,next_due_date,description')
+      .not('next_due_date', 'is', null)
+      .lte('next_due_date', today)
+      .order('next_due_date', { ascending: true });
 
-    return rows;
+    if (error) throw error;
+
+    return (data ?? [])
+      .filter((row) => activeCowById.has(row.cow_id))
+      .map((row) => {
+        const cow = activeCowById.get(row.cow_id)!;
+        return {
+          cow_id: cow.id,
+          tag_number: cow.tag_number,
+          breed: cow.breed,
+          record_id: row.id,
+          type: row.type,
+          next_due_date: row.next_due_date!,
+          description: row.description,
+        };
+      });
   }
 
-  private async getRecentlyTreated(): Promise<RecentlyTreatedAlert[]> {
-    const { rows } = await pool.query<RecentlyTreatedAlert>(
-      `SELECT c.id AS cow_id, c.tag_number, c.breed,
-              h.id AS record_id, h.type, h.record_date, h.description
-       FROM health_records h
-       JOIN cows c ON c.id = h.cow_id
-       WHERE h.record_date >= CURRENT_DATE - INTERVAL '7 days'
-         AND h.type = 'treatment'
-       ORDER BY h.record_date DESC`
-    );
-    
-    return rows;
+  private async getCalvingDue(
+    today: string,
+    activeCowById: Map<string, CowRef>,
+  ): Promise<CalvingDueAlert[]> {
+    const { data, error } = await supabase
+      .from('breeding_records')
+      .select('id,cow_id,event_type,expected_calving_date')
+      .in('event_type', ['service', 'pregnancy_check'])
+      .not('expected_calving_date', 'is', null)
+      .lte('expected_calving_date', today)
+      .order('expected_calving_date', { ascending: true });
+
+    if (error) throw error;
+
+    return (data ?? [])
+      .filter((row) => activeCowById.has(row.cow_id))
+      .map((row) => {
+        const cow = activeCowById.get(row.cow_id)!;
+        return {
+          cow_id: cow.id,
+          tag_number: cow.tag_number,
+          breed: cow.breed,
+          breeding_record_id: row.id,
+          expected_calving_date: row.expected_calving_date!,
+        };
+      });
+  }
+
+  private async getNoMilkToday(
+    today: string,
+    activeCowById: Map<string, CowRef>,
+  ): Promise<NoMilkTodayAlert[]> {
+    const { data, error } = await supabase
+      .from('milk_logs')
+      .select('cow_id')
+      .eq('log_date', today);
+
+    if (error) throw error;
+
+    const loggedToday = new Set((data ?? []).map((row) => row.cow_id));
+    return Array.from(activeCowById.values())
+      .filter((cow) => !loggedToday.has(cow.id))
+      .sort((a, b) => a.tag_number.localeCompare(b.tag_number))
+      .map((cow) => ({
+        cow_id: cow.id,
+        tag_number: cow.tag_number,
+        breed: cow.breed,
+      }));
+  }
+
+  private async getRecentlyTreated(
+    recentThreshold: string,
+    cowById: Map<string, CowRef>,
+  ): Promise<RecentlyTreatedAlert[]> {
+    const { data, error } = await supabase
+      .from('health_records')
+      .select('id,cow_id,type,record_date,description')
+      .eq('type', 'treatment')
+      .gte('record_date', recentThreshold)
+      .order('record_date', { ascending: false });
+
+    if (error) throw error;
+
+    return (data ?? [])
+      .filter((row) => cowById.has(row.cow_id))
+      .map((row) => {
+        const cow = cowById.get(row.cow_id)!;
+        return {
+          cow_id: cow.id,
+          tag_number: cow.tag_number,
+          breed: cow.breed,
+          record_id: row.id,
+          type: row.type,
+          record_date: row.record_date,
+          description: row.description,
+        };
+      });
   }
 }
 

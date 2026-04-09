@@ -1,4 +1,4 @@
-import { pool } from '../../config/db';
+import { supabase } from '../../config/db';
 
 export interface CowMilkStat {
   cow_id: string;
@@ -27,142 +27,252 @@ export interface DashboardResult {
   expense_per_cow: CowExpenseStat[];
 }
 
+interface CowRef {
+  id: string;
+  tag_number: string;
+  breed: string;
+}
+
+const todayDate = (): string => new Date().toISOString().slice(0, 10);
+const dateDaysAgo = (days: number): string => {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() - days);
+  return date.toISOString().slice(0, 10);
+};
+
+const monthBounds = (month: string): { start: string; endExclusive: string } => {
+  const [yearRaw, monthRaw] = month.split('-');
+  const year = Number(yearRaw);
+  const monthIndex = Number(monthRaw) - 1;
+  const start = new Date(Date.UTC(year, monthIndex, 1));
+  const end = new Date(Date.UTC(year, monthIndex + 1, 1));
+  return {
+    start: start.toISOString().slice(0, 10),
+    endExclusive: end.toISOString().slice(0, 10),
+  };
+};
+
+const asNumber = (value: unknown): number => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') return Number(value) || 0;
+  return 0;
+};
+
+const formatDecimal = (value: number): string => value.toFixed(2);
+
 export class DashboardService {
   async getSummary(month?: string): Promise<DashboardResult> {
-    // Default to current month if not provided
-    const targetMonth = month ?? new Date().toISOString().slice(0, 7); // YYYY-MM
+    const targetMonth = month ?? new Date().toISOString().slice(0, 7);
+    const today = todayDate();
+    const recentThreshold = dateDaysAgo(7);
+    const { start, endExclusive } = monthBounds(targetMonth);
+
+    const activeCows = await this.getActiveCows();
+    const activeCowById = new Map(activeCows.map((cow) => [cow.id, cow]));
 
     const [
-      activeCows,
       pregnantCows,
       cowsInMilk,
-      todayMilk,
-      monthlyMilk,
+      todayTotalMilk,
+      monthlyMilkTotal,
       monthlyExpenses,
-      monthlyIncome,
+      monthlyMilkIncome,
       milkPerCow,
       expensePerCow,
     ] = await Promise.all([
-      this.getTotalActiveCows(),
-      this.getPregnantCows(),
-      this.getCowsInMilk(),
-      this.getTodayTotalMilk(),
-      this.getMonthlyMilkTotal(targetMonth),
-      this.getMonthlyExpenses(targetMonth),
-      this.getMonthlyMilkIncome(targetMonth),
-      this.getMilkPerCow(targetMonth),
-      this.getExpensePerCow(targetMonth),
+      this.getPregnantCows(today, activeCowById),
+      this.getCowsInMilk(recentThreshold),
+      this.getTodayTotalMilk(today),
+      this.getMonthlyMilkTotal(start, endExclusive),
+      this.getMonthlyExpenses(start, endExclusive),
+      this.getMonthlyMilkIncome(start, endExclusive),
+      this.getMilkPerCow(activeCows, activeCowById, start, endExclusive),
+      this.getExpensePerCow(activeCows, activeCowById, start, endExclusive),
     ]);
 
-    const profit = (parseFloat(monthlyIncome) - parseFloat(monthlyExpenses)).toFixed(2);
+    const profit = monthlyMilkIncome - monthlyExpenses;
 
     return {
-      total_active_cows: activeCows,
+      total_active_cows: activeCows.length,
       pregnant_cows: pregnantCows,
       cows_in_milk: cowsInMilk,
-      today_total_milk: todayMilk,
-      monthly_milk_total: monthlyMilk,
-      monthly_expenses: monthlyExpenses,
-      monthly_milk_income: monthlyIncome,
-      profit,
+      today_total_milk: formatDecimal(todayTotalMilk),
+      monthly_milk_total: formatDecimal(monthlyMilkTotal),
+      monthly_expenses: formatDecimal(monthlyExpenses),
+      monthly_milk_income: formatDecimal(monthlyMilkIncome),
+      profit: formatDecimal(profit),
       milk_per_cow: milkPerCow,
       expense_per_cow: expensePerCow,
     };
   }
 
-  private async getTotalActiveCows(): Promise<number> {
-    const { rows } = await pool.query<{ count: string }>(
-      `SELECT COUNT(*) AS count FROM cows WHERE status = 'active'`
-    );
-    return parseInt(rows[0]!.count, 10);
+  private async getActiveCows(): Promise<CowRef[]> {
+    const { data, error } = await supabase
+      .from('cows')
+      .select('id,tag_number,breed')
+      .eq('status', 'active');
+
+    if (error) throw error;
+    return data ?? [];
   }
 
-  private async getPregnantCows(): Promise<number> {
-    const { rows } = await pool.query<{ count: string }>(
-      `SELECT COUNT(DISTINCT b.cow_id) AS count
-       FROM breeding_records b
-       JOIN cows c ON c.id = b.cow_id
-       WHERE b.event_type IN ('service', 'pregnancy_check')
-         AND b.expected_calving_date > CURRENT_DATE
-         AND c.status = 'active'`
-    );
-    return parseInt(rows[0]!.count, 10);
+  private async getPregnantCows(
+    today: string,
+    activeCowById: Map<string, CowRef>,
+  ): Promise<number> {
+    const { data, error } = await supabase
+      .from('breeding_records')
+      .select('cow_id')
+      .in('event_type', ['service', 'pregnancy_check'])
+      .not('expected_calving_date', 'is', null)
+      .gt('expected_calving_date', today);
+
+    if (error) throw error;
+
+    return new Set(
+      (data ?? [])
+        .map((row) => row.cow_id)
+        .filter((cowId) => activeCowById.has(cowId)),
+    ).size;
   }
 
-  private async getCowsInMilk(): Promise<number> {
-    const { rows } = await pool.query<{ count: string }>(
-      `SELECT COUNT(DISTINCT cow_id) AS count
-       FROM milk_logs
-       WHERE log_date >= CURRENT_DATE - INTERVAL '7 days'`
-    );
-    return parseInt(rows[0]!.count, 10);
+  private async getCowsInMilk(recentThreshold: string): Promise<number> {
+    const { data, error } = await supabase
+      .from('milk_logs')
+      .select('cow_id')
+      .gte('log_date', recentThreshold);
+
+    if (error) throw error;
+
+    return new Set((data ?? []).map((row) => row.cow_id)).size;
   }
 
-  private async getTodayTotalMilk(): Promise<string> {
-    const { rows } = await pool.query<{ total: string }>(
-      `SELECT COALESCE(SUM(litres), 0)::text AS total
-       FROM milk_logs
-       WHERE log_date = CURRENT_DATE`
-    );
-    return rows[0]!.total;
+  private async getTodayTotalMilk(today: string): Promise<number> {
+    const { data, error } = await supabase
+      .from('milk_logs')
+      .select('litres')
+      .eq('log_date', today);
+
+    if (error) throw error;
+
+    return (data ?? []).reduce((sum, row) => sum + asNumber(row.litres), 0);
   }
 
-  private async getMonthlyMilkTotal(month: string): Promise<string> {
-    const { rows } = await pool.query<{ total: string }>(
-      `SELECT COALESCE(SUM(litres), 0)::text AS total
-       FROM milk_logs
-       WHERE to_char(log_date, 'YYYY-MM') = $1`,
-      [month]
-    );
-    return rows[0]!.total;
+  private async getMonthlyMilkTotal(
+    start: string,
+    endExclusive: string,
+  ): Promise<number> {
+    const { data, error } = await supabase
+      .from('milk_logs')
+      .select('litres')
+      .gte('log_date', start)
+      .lt('log_date', endExclusive);
+
+    if (error) throw error;
+
+    return (data ?? []).reduce((sum, row) => sum + asNumber(row.litres), 0);
   }
 
-  private async getMonthlyExpenses(month: string): Promise<string> {
-    const { rows } = await pool.query<{ total: string }>(
-      `SELECT COALESCE(SUM(amount), 0)::text AS total
-       FROM expense_logs
-       WHERE to_char(expense_date, 'YYYY-MM') = $1`,
-      [month]
-    );
-    return rows[0]!.total;
+  private async getMonthlyExpenses(
+    start: string,
+    endExclusive: string,
+  ): Promise<number> {
+    const { data, error } = await supabase
+      .from('expense_logs')
+      .select('amount')
+      .gte('expense_date', start)
+      .lt('expense_date', endExclusive);
+
+    if (error) throw error;
+
+    return (data ?? []).reduce((sum, row) => sum + asNumber(row.amount), 0);
   }
 
-  private async getMonthlyMilkIncome(month: string): Promise<string> {
-    const { rows } = await pool.query<{ total: string }>(
-      `SELECT COALESCE(SUM(total_amount), 0)::text AS total
-       FROM milk_sales
-       WHERE to_char(sale_date, 'YYYY-MM') = $1`,
-      [month]
-    );
-    return rows[0]!.total;
+  private async getMonthlyMilkIncome(
+    start: string,
+    endExclusive: string,
+  ): Promise<number> {
+    const { data, error } = await supabase
+      .from('milk_sales')
+      .select('total_amount')
+      .gte('sale_date', start)
+      .lt('sale_date', endExclusive);
+
+    if (error) throw error;
+
+    return (data ?? []).reduce((sum, row) => sum + asNumber(row.total_amount), 0);
   }
 
-  private async getMilkPerCow(month: string): Promise<CowMilkStat[]> {
-    const { rows } = await pool.query<CowMilkStat>(
-      `SELECT c.id AS cow_id, c.tag_number, c.breed,
-              COALESCE(SUM(m.litres), 0)::text AS total_litres
-       FROM cows c
-       LEFT JOIN milk_logs m ON m.cow_id = c.id AND to_char(m.log_date, 'YYYY-MM') = $1
-       WHERE c.status = 'active'
-       GROUP BY c.id, c.tag_number, c.breed
-       ORDER BY total_litres DESC`,
-      [month]
+  private async getMilkPerCow(
+    activeCows: CowRef[],
+    activeCowById: Map<string, CowRef>,
+    start: string,
+    endExclusive: string,
+  ): Promise<CowMilkStat[]> {
+    const { data, error } = await supabase
+      .from('milk_logs')
+      .select('cow_id,litres')
+      .gte('log_date', start)
+      .lt('log_date', endExclusive);
+
+    if (error) throw error;
+
+    const totalsByCowId = new Map<string, number>(
+      activeCows.map((cow) => [cow.id, 0]),
     );
-    return rows;
+
+    for (const row of data ?? []) {
+      if (!activeCowById.has(row.cow_id)) continue;
+      totalsByCowId.set(
+        row.cow_id,
+        (totalsByCowId.get(row.cow_id) ?? 0) + asNumber(row.litres),
+      );
+    }
+
+    return activeCows
+      .map((cow) => ({
+        cow_id: cow.id,
+        tag_number: cow.tag_number,
+        breed: cow.breed,
+        total_litres: formatDecimal(totalsByCowId.get(cow.id) ?? 0),
+      }))
+      .sort((a, b) => asNumber(b.total_litres) - asNumber(a.total_litres));
   }
 
-  private async getExpensePerCow(month: string): Promise<CowExpenseStat[]> {
-    const { rows } = await pool.query<CowExpenseStat>(
-      `SELECT c.id AS cow_id, c.tag_number, c.breed,
-              COALESCE(SUM(e.amount), 0)::text AS total_expenses
-       FROM cows c
-       LEFT JOIN expense_logs e ON e.cow_id = c.id AND to_char(e.expense_date, 'YYYY-MM') = $1
-       WHERE c.status = 'active'
-       GROUP BY c.id, c.tag_number, c.breed
-       ORDER BY total_expenses DESC`,
-      [month]
+  private async getExpensePerCow(
+    activeCows: CowRef[],
+    activeCowById: Map<string, CowRef>,
+    start: string,
+    endExclusive: string,
+  ): Promise<CowExpenseStat[]> {
+    const { data, error } = await supabase
+      .from('expense_logs')
+      .select('cow_id,amount')
+      .gte('expense_date', start)
+      .lt('expense_date', endExclusive);
+
+    if (error) throw error;
+
+    const totalsByCowId = new Map<string, number>(
+      activeCows.map((cow) => [cow.id, 0]),
     );
-    return rows;
+
+    for (const row of data ?? []) {
+      if (!activeCowById.has(row.cow_id)) continue;
+      totalsByCowId.set(
+        row.cow_id,
+        (totalsByCowId.get(row.cow_id) ?? 0) + asNumber(row.amount),
+      );
+    }
+
+    return activeCows
+      .map((cow) => ({
+        cow_id: cow.id,
+        tag_number: cow.tag_number,
+        breed: cow.breed,
+        total_expenses: formatDecimal(totalsByCowId.get(cow.id) ?? 0),
+      }))
+      .sort((a, b) => asNumber(b.total_expenses) - asNumber(a.total_expenses));
   }
 }
 

@@ -1,55 +1,87 @@
-import { pool } from "../../config/db";
-import { CowNotFoundError, RecordNotFoundError } from "../../config/errors";
-import { PaginationParams, PaginatedResult, paginate } from "../../lib/pagination";
-import { MilkLog, CreateMilkLogInput, UpdateMilkLogInput } from "./milk.types";
+import { supabase } from '../../config/db';
+import { CowNotFoundError, RecordNotFoundError } from '../../config/errors';
+import { PaginationParams, PaginatedResult, paginate } from '../../lib/pagination';
+import { CreateMilkLogInput, MilkLog, UpdateMilkLogInput } from './milk.types';
 
 export class MilkService {
+  private async ensureCowExists(cowId: string): Promise<void> {
+    const { data, error } = await supabase
+      .from('cows')
+      .select('id')
+      .eq('id', cowId)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) throw new CowNotFoundError();
+  }
+
   async createLog(cowId: string, input: CreateMilkLogInput): Promise<MilkLog> {
-    const { rowCount } = await pool.query("SELECT 1 FROM cows WHERE id = $1", [cowId]);
-    if (!rowCount) throw new CowNotFoundError();
+    await this.ensureCowExists(cowId);
 
-    const { rows } = await pool.query<MilkLog>(
-      `INSERT INTO milk_logs (cow_id, litres, period, log_date, notes)
-       VALUES ($1, $2, $3, COALESCE($4::date, CURRENT_DATE), $5)
-       RETURNING *`,
-      [cowId, input.litres, input.period, input.log_date ?? null, input.notes ?? null]
-    );
-    return rows[0]!;
+    const payload: Record<string, unknown> = {
+      cow_id: cowId,
+      litres: input.litres,
+      period: input.period,
+      notes: input.notes ?? null,
+    };
+
+    if (input.log_date !== undefined) {
+      payload['log_date'] = input.log_date;
+    }
+
+    const { data, error } = await supabase
+      .from('milk_logs')
+      .insert(payload)
+      .select('*')
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) throw new Error('Failed to create milk log');
+
+    return data;
   }
 
-  async getLogsByCow(cowId: string, pagination: PaginationParams): Promise<PaginatedResult<MilkLog>> {
-    const { rowCount } = await pool.query("SELECT 1 FROM cows WHERE id = $1", [cowId]);
-    if (!rowCount) throw new CowNotFoundError();
+  async getLogsByCow(
+    cowId: string,
+    pagination: PaginationParams,
+  ): Promise<PaginatedResult<MilkLog>> {
+    await this.ensureCowExists(cowId);
 
-    const { rows: countRows } = await pool.query<{ count: string }>(
-      "SELECT COUNT(*) AS count FROM milk_logs WHERE cow_id = $1",
-      [cowId]
-    );
-    const total = parseInt(countRows[0]!.count, 10);
+    const { data, error, count } = await supabase
+      .from('milk_logs')
+      .select('*', { count: 'exact' })
+      .eq('cow_id', cowId)
+      .order('log_date', { ascending: false })
+      .range(pagination.offset, pagination.offset + pagination.limit - 1);
 
-    const { rows } = await pool.query<MilkLog>(
-      "SELECT * FROM milk_logs WHERE cow_id = $1 ORDER BY log_date DESC LIMIT $2 OFFSET $3",
-      [cowId, pagination.limit, pagination.offset]
-    );
-    return paginate(rows, total, pagination);
+    if (error) throw error;
+
+    return paginate(data ?? [], count ?? 0, pagination);
   }
 
-  async updateLog(cowId: string, id: string, input: UpdateMilkLogInput): Promise<MilkLog> {
-    const fields: string[] = [];
-    const values: unknown[] = [];
-    let idx = 1;
+  async updateLog(
+    cowId: string,
+    id: string,
+    input: UpdateMilkLogInput,
+  ): Promise<MilkLog> {
+    const updates: Partial<MilkLog> = {};
 
-    if (input.litres !== undefined) { fields.push(`litres = $${idx++}`); values.push(input.litres); }
-    if (input.period !== undefined) { fields.push(`period = $${idx++}`); values.push(input.period); }
-    if (input.notes !== undefined) { fields.push(`notes = $${idx++}`); values.push(input.notes); }
+    if (input.litres !== undefined) updates.litres = String(input.litres);
+    if (input.period !== undefined) updates.period = input.period;
+    if (input.notes !== undefined) updates.notes = input.notes;
 
-    values.push(id, cowId);
-    const { rows } = await pool.query<MilkLog>(
-      `UPDATE milk_logs SET ${fields.join(", ")} WHERE id = $${idx} AND cow_id = $${idx + 1} RETURNING *`,
-      values
-    );
-    if (!rows[0]) throw new RecordNotFoundError("Milk log");
-    return rows[0];
+    const { data, error } = await supabase
+      .from('milk_logs')
+      .update(updates)
+      .eq('id', id)
+      .eq('cow_id', cowId)
+      .select('*')
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) throw new RecordNotFoundError('Milk log');
+
+    return data;
   }
 }
 
