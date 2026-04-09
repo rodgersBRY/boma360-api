@@ -1,7 +1,11 @@
-import { getDbClient } from '../../config/db';
-import { CowNotFoundError } from '../../config/errors';
-import { PaginationParams, PaginatedResult, paginate } from '../../lib/pagination';
-import { Cow, CowStatus, CreateCowInput, UpdateCowInput } from './cows.types';
+import { getDbClient } from "../../config/db";
+import { CowNotFoundError } from "../../config/errors";
+import {
+  PaginationParams,
+  PaginatedResult,
+  paginate,
+} from "../../lib/pagination";
+import { Cow, CowStatus, CreateCowInput, UpdateCowInput } from "./cows.types";
 
 export class CowService {
   private get db() {
@@ -10,19 +14,19 @@ export class CowService {
 
   async createCow(input: CreateCowInput): Promise<Cow> {
     const { data, error } = await this.db
-      .from('cows')
+      .from("cows")
       .insert({
         tag_number: input.tag_number,
         breed: input.breed,
         date_of_birth: input.date_of_birth,
         source: input.source,
       })
-      .select('*')
+      .select("*")
       .maybeSingle();
 
     if (error) throw error;
-    
-    if (!data) throw new Error('Failed to create cow');
+
+    if (!data) throw new Error("Failed to create cow");
 
     return data;
   }
@@ -31,14 +35,14 @@ export class CowService {
     filters: { status?: CowStatus },
     pagination: PaginationParams,
   ): Promise<PaginatedResult<Cow>> {
-    let query = this.db.from('cows').select('*', { count: 'exact' });
+    let query = this.db.from("cows").select("*", { count: "exact" });
 
-    if (filters.status) {
-      query = query.eq('status', filters.status);
+    if (filters.status !== undefined) {
+      query = query.eq("status", filters.status);
     }
 
     const { data, error, count } = await query
-      .order('created_at', { ascending: false })
+      .order("created_at", { ascending: false })
       .range(pagination.offset, pagination.offset + pagination.limit - 1);
 
     if (error) throw error;
@@ -48,9 +52,9 @@ export class CowService {
 
   async getCowById(id: string): Promise<Cow> {
     const { data, error } = await this.db
-      .from('cows')
-      .select('*')
-      .eq('id', id)
+      .from("cows")
+      .select("*")
+      .eq("id", id)
       .maybeSingle();
 
     if (error) throw error;
@@ -60,20 +64,25 @@ export class CowService {
   }
 
   async updateCow(id: string, input: UpdateCowInput): Promise<Cow> {
-    const updates: Partial<Pick<Cow, 'breed' | 'status'>> = {};
+    const updates: Partial<Pick<Cow, "breed" | "status" | "tag_number">> = {};
 
     if (input.breed !== undefined) {
       updates.breed = input.breed;
     }
+
     if (input.status !== undefined) {
       updates.status = input.status;
     }
 
+    if (input.tag_number !== undefined) {
+      updates.tag_number = input.tag_number;
+    }
+
     const { data, error } = await this.db
-      .from('cows')
+      .from("cows")
       .update(updates)
-      .eq('id', id)
-      .select('*')
+      .eq("id", id)
+      .select("*")
       .maybeSingle();
 
     if (error) throw error;

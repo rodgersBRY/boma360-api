@@ -21,4 +21,5 @@ export interface CreateCowInput {
 export interface UpdateCowInput {
   breed?: string;
   status?: CowStatus;
+  tag_number?: string;
 }

@@ -1,5 +1,9 @@
 ### Base URL
 @baseUrl = http://localhost:8888/v1
+@authEmail = mawirab@gmail.com
+@authPassword = StrongPass123!
+@accessToken = eyJhbGciOiJFUzI1NiIsImtpZCI6ImI0YzE2MzY1LWI4ZTItNGFjYS1iMThjLWM2YTUxZTE4MDY1MCIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL294bHV0dmNzanppZHZ3bHNxcXZ2LnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI2MDhlNGMxMS1kZWUxLTQ0M2YtOWYzNC1jMTAxZWY5ZjgxMmYiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzc1NzMzMzY0LCJpYXQiOjE3NzU3Mjk3NjQsImVtYWlsIjoibWF3aXJhYkBnbWFpbC5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsIjoibWF3aXJhYkBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZnVsbF9uYW1lIjoiRmFybSBPd25lciIsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwic3ViIjoiNjA4ZTRjMTEtZGVlMS00NDNmLTlmMzQtYzEwMWVmOWY4MTJmIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3NzU3Mjk3MjZ9XSwic2Vzc2lvbl9pZCI6IjQ5OTU3ZDMyLTEzY2UtNGEwNi1hNzMyLTYzOGE2YWFmOTcwNSIsImlzX2Fub255bW91cyI6ZmFsc2V9._S7SkpkSvY_2Bqzimuwgwc2z_iII205lR5KvGp_Ahc3qT9x9z1NbFHU-CJ_5lRteZct5sBPZ8fDaAZYMXk2WQQ
+@refreshToken = aykb4ac6lhxb
 
 @cowId=6d6f165a-41ee-44fa-9d50-f7075f79774d
 @healthRecordId=c849af45-bae8-4844-b6ff-65e77c865f51
@@ -13,11 +17,57 @@
 GET {{baseUrl}}/health
 
 ### ─────────────────────────────────────────
+### AUTH
+### ─────────────────────────────────────────
+
+### Sign up
+POST {{baseUrl}}/auth/sign-up
+Content-Type: application/json
+
+{
+  "email": "{{authEmail}}",
+  "password": "{{authPassword}}",
+  "full_name": "Farm Owner"
+}
+
+###
+
+### Sign in
+POST {{baseUrl}}/auth/sign-in
+Content-Type: application/json
+
+{
+  "email": "{{authEmail}}",
+  "password": "{{authPassword}}"
+}
+
+###
+
+### Refresh session
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "{{refreshToken}}"
+}
+
+###
+
+### Get current user
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{accessToken}}
+
+### ─────────────────────────────────────────
+### PROTECTED ROUTES (Bearer token required)
+### ─────────────────────────────────────────
+
+### ─────────────────────────────────────────
 ### COWS
 ### ─────────────────────────────────────────
 
 ### Create cow
 POST {{baseUrl}}/cows
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -31,21 +81,25 @@ Content-Type: application/json
 
 ### List all cows
 GET {{baseUrl}}/cows
+Authorization: Bearer {{accessToken}}
 
 ###
 
 ### List active cows
 GET {{baseUrl}}/cows?status=active
+Authorization: Bearer {{accessToken}}
 
 ###
 
 ### Get single cow
 GET {{baseUrl}}/cows/{{cowId}}
+Authorization: Bearer {{accessToken}}
 
 ###
 
 ### Update cow status (soft delete / mark sold)
 PATCH {{baseUrl}}/cows/{{cowId}}
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -58,6 +112,7 @@ Content-Type: application/json
 
 ### Create health record (treatment)
 POST {{baseUrl}}/cows/{{cowId}}/health-records
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -73,6 +128,7 @@ Content-Type: application/json
 
 ### Create health record (vaccination)
 POST {{baseUrl}}/cows/{{cowId}}/health-records
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -85,6 +141,7 @@ Content-Type: application/json
 
 ### Create health record (deworming)
 POST {{baseUrl}}/cows/{{cowId}}/health-records
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -98,16 +155,19 @@ Content-Type: application/json
 
 ### List health records for a cow
 GET {{baseUrl}}/cows/{{cowId}}/health-records
+Authorization: Bearer {{accessToken}}
 
 ###
 
 ### Get single health record
 GET {{baseUrl}}/cows/{{cowId}}/health-records/{{healthRecordId}}
+Authorization: Bearer {{accessToken}}
 
 ###
 
 ### Update health record
 PATCH {{baseUrl}}/cows/{{cowId}}/health-records/{{healthRecordId}}
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -121,6 +181,7 @@ Content-Type: application/json
 
 ### Log heat
 POST {{baseUrl}}/cows/{{cowId}}/breeding-records
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -133,6 +194,7 @@ Content-Type: application/json
 
 ### Log service (AI / bull)
 POST {{baseUrl}}/cows/{{cowId}}/breeding-records
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -146,6 +208,7 @@ Content-Type: application/json
 
 ### Log pregnancy check
 POST {{baseUrl}}/cows/{{cowId}}/breeding-records
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -159,6 +222,7 @@ Content-Type: application/json
 
 ### Log calving (creates calf automatically)
 POST {{baseUrl}}/cows/{{cowId}}/breeding-records
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -176,11 +240,13 @@ Content-Type: application/json
 
 ### List breeding records for a cow
 GET {{baseUrl}}/cows/{{cowId}}/breeding-records
+Authorization: Bearer {{accessToken}}
 
 ###
 
 ### Get single breeding record
 GET {{baseUrl}}/cows/{{cowId}}/breeding-records/{{breedingRecordId}}
+Authorization: Bearer {{accessToken}}
 
 ### ─────────────────────────────────────────
 ### MILK LOGS
@@ -188,6 +254,7 @@ GET {{baseUrl}}/cows/{{cowId}}/breeding-records/{{breedingRecordId}}
 
 ### Log today's milk
 POST {{baseUrl}}/cows/{{cowId}}/milk-logs
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -200,6 +267,7 @@ Content-Type: application/json
 
 ### Log milk for a specific date
 POST {{baseUrl}}/cows/{{cowId}}/milk-logs
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -212,11 +280,13 @@ Content-Type: application/json
 
 ### List milk logs for a cow
 GET {{baseUrl}}/cows/{{cowId}}/milk-logs
+Authorization: Bearer {{accessToken}}
 
 ###
 
 ### Update milk log
 PATCH {{baseUrl}}/cows/{{cowId}}/milk-logs/{{milkLogId}}
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -230,6 +300,7 @@ Content-Type: application/json
 
 ### Log expense
 POST {{baseUrl}}/cows/{{cowId}}/expenses
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -243,6 +314,7 @@ Content-Type: application/json
 
 ### Log supplement expense
 POST {{baseUrl}}/cows/{{cowId}}/expenses
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -255,6 +327,7 @@ Content-Type: application/json
 
 ### List expenses for a cow
 GET {{baseUrl}}/cows/{{cowId}}/expenses
+Authorization: Bearer {{accessToken}}
 
 ### ─────────────────────────────────────────
 ### MILK SALES
@@ -262,12 +335,12 @@ GET {{baseUrl}}/cows/{{cowId}}/expenses
 
 ### Log a milk sale
 POST {{baseUrl}}/milk-sales
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
   "sale_date": "2026-04-04",
   "litres_sold": 120.5,
-  "total_amount": 7832.50,
   "price_per_litre": 65.00,
   "buyer": "KCC",
   "notes": "Morning collection"
@@ -277,11 +350,13 @@ Content-Type: application/json
 
 ### List all milk sales
 GET {{baseUrl}}/milk-sales
+Authorization: Bearer {{accessToken}}
 
 ###
 
 ### List milk sales for a specific month
 GET {{baseUrl}}/milk-sales?month=2026-04
+Authorization: Bearer {{accessToken}}
 
 ### ─────────────────────────────────────────
 ### ALERTS
@@ -289,6 +364,7 @@ GET {{baseUrl}}/milk-sales?month=2026-04
 
 ### Get all alerts
 GET {{baseUrl}}/alerts
+Authorization: Bearer {{accessToken}}
 
 ### ─────────────────────────────────────────
 ### DASHBOARD
@@ -296,8 +372,10 @@ GET {{baseUrl}}/alerts
 
 ### Get dashboard (current month)
 GET {{baseUrl}}/dashboard
+Authorization: Bearer {{accessToken}}
 
 ###
 
 ### Get dashboard for a specific month
 GET {{baseUrl}}/dashboard?month=2026-04
+Authorization: Bearer {{accessToken}}

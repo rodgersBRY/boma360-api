@@ -1,4 +1,4 @@
-import { getDbClient } from '../../config/db';
+import { getDbClient } from "../../config/db";
 
 export interface HealthDueAlert {
   cow_id: string;
@@ -49,9 +49,12 @@ interface CowRef {
 }
 
 const todayDate = (): string => new Date().toISOString().slice(0, 10);
+
 const dateDaysAgo = (days: number): string => {
   const date = new Date();
+
   date.setUTCDate(date.getUTCDate() - days);
+
   return date.toISOString().slice(0, 10);
 };
 
@@ -67,7 +70,7 @@ export class AlertsService {
     const cows = await this.getCows();
     const cowById = new Map(cows.map((cow) => [cow.id, cow]));
     const activeCowById = new Map(
-      cows.filter((cow) => cow.status === 'active').map((cow) => [cow.id, cow]),
+      cows.filter((cow) => cow.status === "active").map((cow) => [cow.id, cow]),
     );
 
     const [healthDue, calvingDue, noMilkToday, recentlyTreated] =
@@ -88,8 +91,8 @@ export class AlertsService {
 
   private async getCows(): Promise<CowRef[]> {
     const { data, error } = await this.db
-      .from('cows')
-      .select('id,tag_number,breed,status');
+      .from("cows")
+      .select("id,tag_number,breed,status");
 
     if (error) throw error;
     return data ?? [];
@@ -100,11 +103,11 @@ export class AlertsService {
     activeCowById: Map<string, CowRef>,
   ): Promise<HealthDueAlert[]> {
     const { data, error } = await this.db
-      .from('health_records')
-      .select('id,cow_id,type,next_due_date,description')
-      .not('next_due_date', 'is', null)
-      .lte('next_due_date', today)
-      .order('next_due_date', { ascending: true });
+      .from("health_records")
+      .select("id,cow_id,type,next_due_date,description")
+      .not("next_due_date", "is", null)
+      .lte("next_due_date", today)
+      .order("next_due_date", { ascending: true });
 
     if (error) throw error;
 
@@ -129,12 +132,12 @@ export class AlertsService {
     activeCowById: Map<string, CowRef>,
   ): Promise<CalvingDueAlert[]> {
     const { data, error } = await this.db
-      .from('breeding_records')
-      .select('id,cow_id,event_type,expected_calving_date')
-      .in('event_type', ['service', 'pregnancy_check'])
-      .not('expected_calving_date', 'is', null)
-      .lte('expected_calving_date', today)
-      .order('expected_calving_date', { ascending: true });
+      .from("breeding_records")
+      .select("id,cow_id,event_type,expected_calving_date")
+      .in("event_type", ["service", "pregnancy_check"])
+      .not("expected_calving_date", "is", null)
+      .lte("expected_calving_date", today)
+      .order("expected_calving_date", { ascending: true });
 
     if (error) throw error;
 
@@ -157,9 +160,9 @@ export class AlertsService {
     activeCowById: Map<string, CowRef>,
   ): Promise<NoMilkTodayAlert[]> {
     const { data, error } = await this.db
-      .from('milk_logs')
-      .select('cow_id')
-      .eq('log_date', today);
+      .from("milk_logs")
+      .select("cow_id")
+      .eq("log_date", today);
 
     if (error) throw error;
 
@@ -179,11 +182,11 @@ export class AlertsService {
     cowById: Map<string, CowRef>,
   ): Promise<RecentlyTreatedAlert[]> {
     const { data, error } = await this.db
-      .from('health_records')
-      .select('id,cow_id,type,record_date,description')
-      .eq('type', 'treatment')
-      .gte('record_date', recentThreshold)
-      .order('record_date', { ascending: false });
+      .from("health_records")
+      .select("id,cow_id,type,record_date,description")
+      .eq("type", "treatment")
+      .gte("record_date", recentThreshold)
+      .order("record_date", { ascending: false });
 
     if (error) throw error;
 
