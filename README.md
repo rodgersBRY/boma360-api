@@ -16,15 +16,15 @@ The API covers the full lifecycle of a dairy operation:
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Runtime | Node.js |
-| Language | TypeScript 5.8 |
-| Framework | Express 4 |
-| Database | Supabase Postgres |
-| Schema/Migrations | Prisma 7 |
-| Validation | Zod |
-| Logging | Winston |
+| Layer             | Technology        |
+| ----------------- | ----------------- |
+| Runtime           | Node.js           |
+| Language          | TypeScript 5.8    |
+| Framework         | Express 4         |
+| Database          | Supabase Postgres |
+| Schema/Migrations | Prisma 7          |
+| Validation        | Zod               |
+| Logging           | Winston           |
 
 ## Project Structure
 
@@ -82,17 +82,17 @@ All routes are prefixed with `/v1/`.
 
 ## Endpoints Summary
 
-| Module | Base Path | Docs |
-|---|---|---|
-| Auth | `/v1/auth` | [README](src/modules/auth/README.md) |
-| Cows | `/v1/cows` | [README](src/modules/cows/README.md) |
-| Health Records | `/v1/cows/:cowId/health-records` | [README](src/modules/health/README.md) |
-| Breeding Records | `/v1/cows/:cowId/breeding-records` | [README](src/modules/breeding/README.md) |
-| Milk Logs | `/v1/cows/:cowId/milk-logs` | [README](src/modules/milk/README.md) |
-| Expenses | `/v1/cows/:cowId/expenses` | [README](src/modules/expenses/README.md) |
-| Milk Sales | `/v1/milk-sales` | [README](src/modules/milk_sales/README.md) |
-| Alerts | `/v1/alerts` | [README](src/modules/alerts/README.md) |
-| Dashboard | `/v1/dashboard` | [README](src/modules/dashboard/README.md) |
+| Module           | Base Path                          | Docs                                       |
+| ---------------- | ---------------------------------- | ------------------------------------------ |
+| Auth             | `/v1/auth`                         | [README](src/modules/auth/README.md)       |
+| Cows             | `/v1/cows`                         | [README](src/modules/cows/README.md)       |
+| Health Records   | `/v1/cows/:cowId/health-records`   | [README](src/modules/health/README.md)     |
+| Breeding Records | `/v1/cows/:cowId/breeding-records` | [README](src/modules/breeding/README.md)   |
+| Milk Logs        | `/v1/cows/:cowId/milk-logs`        | [README](src/modules/milk/README.md)       |
+| Expenses         | `/v1/cows/:cowId/expenses`         | [README](src/modules/expenses/README.md)   |
+| Milk Sales       | `/v1/milk-sales`                   | [README](src/modules/milk_sales/README.md) |
+| Alerts           | `/v1/alerts`                       | [README](src/modules/alerts/README.md)     |
+| Dashboard        | `/v1/dashboard`                    | [README](src/modules/dashboard/README.md)  |
 
 ## Setup
 
@@ -142,13 +142,13 @@ npm run build && npm start
 
 ## Scripts
 
-| Script | Description |
-|---|---|
-| `npm run dev` | Start dev server with nodemon |
-| `npm run build` | Compile TypeScript to `dist/` |
-| `npm start` | Run compiled build |
-| `npm run seed:test` | Insert repeatable local test data |
-| `npm run migrate` | Create and apply a new migration |
+| Script                   | Description                           |
+| ------------------------ | ------------------------------------- |
+| `npm run dev`            | Start dev server with nodemon         |
+| `npm run build`          | Compile TypeScript to `dist/`         |
+| `npm start`              | Run compiled build                    |
+| `npm run seed:test`      | Insert repeatable local test data     |
+| `npm run migrate`        | Create and apply a new migration      |
 | `npm run migrate:deploy` | Apply pending migrations (production) |
 
 ## Test Seed Data
@@ -215,13 +215,13 @@ Errors return consistent JSON:
 
 Common HTTP status codes:
 
-| Code | Meaning |
-|---|---|
-| 400 | Validation error |
-| 404 | Resource not found |
-| 409 | Unique constraint violation |
-| 422 | Foreign key or check constraint violation |
-| 500 | Internal server error |
+| Code | Meaning                                   |
+| ---- | ----------------------------------------- |
+| 400  | Validation error                          |
+| 404  | Resource not found                        |
+| 409  | Unique constraint violation               |
+| 422  | Foreign key or check constraint violation |
+| 500  | Internal server error                     |
 
 ## Testing
 
