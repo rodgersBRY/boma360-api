@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { createSupabaseClient, getUserFromAccessToken } from "../config/db";
-import { runWithRequestContext } from "../config/requestContext";
+import { getRequestContext, runWithRequestContext } from "../config/requestContext";
 import { UnauthorizedError } from "../config/errors";
+import { organizationsService } from "../modules/organizations/organizations.service";
 
 const extractBearerToken = (authHeader?: string): string | undefined => {
   if (!authHeader) return undefined;
@@ -44,6 +45,18 @@ export const requireAuth = async (
     }
 
     req.authUser = user;
+
+    const membership = await organizationsService.getMembershipByUserId(user.id);
+    if (!membership) {
+      throw new UnauthorizedError("No organization found for this user");
+    }
+
+    req.orgId = membership.organization_id;
+
+    const ctx = getRequestContext();
+    if (ctx) {
+      ctx.orgId = membership.organization_id;
+    }
 
     next();
   } catch (err) {
