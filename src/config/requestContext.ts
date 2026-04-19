@@ -5,6 +5,7 @@ interface RequestContext {
   supabase: SupabaseClient;
   accessToken?: string;
   authUser?: User;
+  orgId?: string;
 }
 
 const requestContextStorage = new AsyncLocalStorage<RequestContext>();
