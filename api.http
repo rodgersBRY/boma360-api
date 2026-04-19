@@ -20,14 +20,15 @@ GET {{baseUrl}}/health
 ### AUTH
 ### ─────────────────────────────────────────
 
-### Sign up
+### Sign up (creates user + organization in one step)
 POST {{baseUrl}}/auth/sign-up
 Content-Type: application/json
 
 {
   "email": "{{authEmail}}",
   "password": "{{authPassword}}",
-  "full_name": "Farm Owner"
+  "full_name": "Farm Owner",
+  "farm_name": "Green Pastures Farm"
 }
 
 ###
@@ -55,6 +56,12 @@ Content-Type: application/json
 
 ### Get current user
 GET {{baseUrl}}/auth/me
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Get current user's organization
+GET {{baseUrl}}/auth/me/organization
 Authorization: Bearer {{accessToken}}
 
 ### ─────────────────────────────────────────
