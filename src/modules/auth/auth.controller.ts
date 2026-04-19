@@ -64,10 +64,11 @@ export const getMyOrganization = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const organization = await organizationsService.getOrganizationByUserId(
-      req.authUser!.id,
-    );
-    res.json({ organization });
+    const [organization, membership] = await Promise.all([
+      organizationsService.getOrganizationByUserId(req.authUser!.id),
+      organizationsService.getMembershipByUserId(req.authUser!.id),
+    ]);
+    res.json({ organization: { ...organization, role: membership?.role ?? null } });
   } catch (err) {
     next(err);
   }
