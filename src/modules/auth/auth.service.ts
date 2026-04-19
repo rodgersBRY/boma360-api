@@ -1,5 +1,6 @@
 import { createSupabaseClient, getUserFromAccessToken } from "../../config/db";
 import { UnauthorizedError } from "../../config/errors";
+import { organizationsService } from "../organizations/organizations.service";
 import { RefreshTokenInput, SignInInput, SignUpInput } from "./auth.types";
 
 export class AuthService {
@@ -8,24 +9,23 @@ export class AuthService {
     const { data, error } = await client.auth.signUp({
       email: input.email,
       password: input.password,
-      options: input.full_name
-        ? {
-            data: {
-              full_name: input.full_name,
-            },
-          }
-        : input.phone
-          ? {
-              data: {
-                phone: input.phone,
-              },
-            }
-          : undefined,
+      options: {
+        data: {
+          ...(input.full_name && { full_name: input.full_name }),
+          ...(input.phone && { phone: input.phone }),
+        },
+      },
     });
 
     if (error) throw error;
+    if (!data.user) return data;
 
-    return data;
+    const { organization } = await organizationsService.createOrganizationForUser(
+      data.user.id,
+      input.farm_name,
+    );
+
+    return { ...data, organization };
   }
 
   async signIn(input: SignInInput) {

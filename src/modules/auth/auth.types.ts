@@ -1,6 +1,7 @@
 export interface SignUpInput {
   email: string;
   password: string;
+  farm_name: string;
   full_name?: string;
   phone?: string;
 }

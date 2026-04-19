@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { authService } from "./auth.service";
+import { organizationsService } from "../organizations/organizations.service";
 
 export const signUp = async (
   req: Request,
@@ -50,8 +51,23 @@ export const getMe = async (
 ): Promise<void> => {
   try {
     const user = await authService.getMe(req.accessToken);
-    
+
     res.json({ user });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getMyOrganization = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const organization = await organizationsService.getOrganizationByUserId(
+      req.authUser!.id,
+    );
+    res.json({ organization });
   } catch (err) {
     next(err);
   }
