@@ -26,6 +26,7 @@ const start = async (): Promise<void> => {
     logger.info("  POST   /v1/auth/sign-in");
     logger.info("  POST   /v1/auth/refresh");
     logger.info("  GET    /v1/auth/me");
+    logger.info("  GET    /v1/auth/me/organization");
     logger.info("  GET    /v1/cows");
     logger.info("  POST   /v1/cows");
     logger.info("  GET    /v1/cows/:id");
