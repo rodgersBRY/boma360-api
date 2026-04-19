@@ -1,4 +1,4 @@
-import { getDbClient } from "../../config/db";
+import { getDbClient, getOrgId } from "../../config/db";
 import { CowNotFoundError, RecordNotFoundError } from "../../config/errors";
 import {
   PaginationParams,
@@ -34,6 +34,7 @@ export class HealthService {
     await this.ensureCowExists(cowId);
 
     const payload: Record<string, unknown> = {
+      organization_id: getOrgId(),
       cow_id: cowId,
       type: input.type,
       description: input.description,

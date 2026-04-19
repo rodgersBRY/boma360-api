@@ -1,4 +1,4 @@
-import { getDbClient } from '../../config/db';
+import { getDbClient, getOrgId } from '../../config/db';
 import { CowNotFoundError, RecordNotFoundError } from '../../config/errors';
 import { logger } from '../../config/logger';
 import { PaginationParams, PaginatedResult, paginate } from '../../lib/pagination';
@@ -32,9 +32,11 @@ export class BreedingService {
     await this.ensureCowExists(cowId);
 
     if (input.event_type === 'calving') {
+      const orgId = getOrgId();
       const { data: breedingRecord, error: breedingError } = await this.db
         .from('breeding_records')
         .insert({
+          organization_id: orgId,
           cow_id: cowId,
           event_type: input.event_type,
           event_date: input.event_date,
@@ -50,6 +52,7 @@ export class BreedingService {
       const { data: calf, error: calfError } = await this.db
         .from('cows')
         .insert({
+          organization_id: orgId,
           tag_number: input.calf!.tag_number,
           breed: input.calf!.breed,
           date_of_birth: input.calf!.date_of_birth,
@@ -78,6 +81,7 @@ export class BreedingService {
     const { data, error } = await this.db
       .from('breeding_records')
       .insert({
+        organization_id: getOrgId(),
         cow_id: cowId,
         event_type: input.event_type,
         event_date: input.event_date,

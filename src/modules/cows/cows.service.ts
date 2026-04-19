@@ -1,4 +1,4 @@
-import { getDbClient } from "../../config/db";
+import { getDbClient, getOrgId } from "../../config/db";
 import { CowNotFoundError } from "../../config/errors";
 import {
   PaginationParams,
@@ -16,6 +16,7 @@ export class CowService {
     const { data, error } = await this.db
       .from("cows")
       .insert({
+        organization_id: getOrgId(),
         tag_number: input.tag_number,
         breed: input.breed,
         date_of_birth: input.date_of_birth,

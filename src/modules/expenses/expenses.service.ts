@@ -1,4 +1,4 @@
-import { getDbClient } from "../../config/db";
+import { getDbClient, getOrgId } from "../../config/db";
 import { CowNotFoundError } from "../../config/errors";
 import {
   PaginationParams,
@@ -30,6 +30,7 @@ export class ExpenseService {
     await this.ensureCowExists(cowId);
 
     const payload: Record<string, unknown> = {
+      organization_id: getOrgId(),
       cow_id: cowId,
       category: input.category,
       amount: input.amount,

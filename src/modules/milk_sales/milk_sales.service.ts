@@ -1,4 +1,4 @@
-import { getDbClient } from "../../config/db";
+import { getDbClient, getOrgId } from "../../config/db";
 import { PostgrestError } from "@supabase/supabase-js";
 import {
   PaginationParams,
@@ -34,6 +34,7 @@ export class MilkSalesService {
     );
 
     const payload: Record<string, unknown> = {
+      organization_id: getOrgId(),
       litres_sold: input.litres_sold,
       price_per_litre: input.price_per_litre,
       total_amount: totalAmount,
