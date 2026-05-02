@@ -1,0 +1,107 @@
+# Notifications Module
+
+Android-only Firebase Cloud Messaging support for the mobile app.
+
+## Endpoints
+
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| `POST` | `/v1/notifications/tokens` | Register or refresh the authenticated user's Android FCM token |
+| `DELETE` | `/v1/notifications/tokens` | Remove the authenticated user's Android FCM token |
+| `POST` | `/v1/notifications/test` | Send a test push notification to the authenticated user's registered Android devices |
+
+All endpoints are protected and require `Authorization: Bearer <access_token>`.
+
+## Register Token
+
+```http
+POST /v1/notifications/tokens
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "token": "<fcm-token>",
+  "platform": "android",
+  "device_id": "optional-device-id"
+}
+```
+
+Response:
+
+```json
+{
+  "token": {
+    "id": "uuid",
+    "organization_id": "uuid",
+    "user_id": "uuid",
+    "token": "<fcm-token>",
+    "platform": "android",
+    "device_id": "optional-device-id",
+    "last_seen_at": "2026-05-02T12:00:00.000Z",
+    "created_at": "2026-05-02T12:00:00.000Z",
+    "updated_at": "2026-05-02T12:00:00.000Z"
+  }
+}
+```
+
+## Unregister Token
+
+```http
+DELETE /v1/notifications/tokens
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "token": "<fcm-token>"
+}
+```
+
+Response: `204 No Content`
+
+## Send Test Notification
+
+```http
+POST /v1/notifications/test
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "title": "Health follow-up",
+  "body": "Cow A12 has a vaccine due today",
+  "data": {
+    "screen": "alerts"
+  }
+}
+```
+
+Response:
+
+```json
+{
+  "successCount": 1,
+  "failureCount": 0
+}
+```
+
+## Database
+
+The `notification_tokens` table is created by `migrations/004_notification_tokens.sql`.
+
+Key fields:
+
+- `organization_id`: Farm/account scope.
+- `user_id`: Supabase auth user that owns the token.
+- `token`: Unique FCM registration token.
+- `platform`: Currently restricted to `android`.
+- `device_id`: Optional client-provided device identifier.
+- `last_seen_at`: Updated whenever the app registers or refreshes the token.
+
+## Firebase Configuration
+
+Notification sends require these environment variables:
+
+```env
+FIREBASE_PROJECT_ID=your-firebase-project-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+```

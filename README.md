@@ -13,6 +13,7 @@ The API covers the full lifecycle of a dairy operation:
 - Per-cow expense tracking
 - Farm-level milk sales
 - Real-time alerts and dashboard metrics
+- Android push notification token registration and test sends
 
 ## Tech Stack
 
@@ -25,6 +26,7 @@ The API covers the full lifecycle of a dairy operation:
 | Schema/Migrations | Prisma 7          |
 | Validation        | Zod               |
 | Logging           | Winston           |
+| Push Messaging    | Firebase Admin    |
 
 ## Project Structure
 
@@ -35,6 +37,7 @@ api/
 │   ├── config/
 │   │   ├── db.ts               # Supabase SDK client setup
 │   │   ├── express.ts          # Express setup, middleware, route mounting
+│   │   ├── firebase-admin.ts   # Firebase Admin SDK setup for FCM
 │   │   ├── logger.ts           # Winston logger
 │   │   └── errors.ts           # Custom error classes
 │   ├── env/                    # Environment variable loaders
@@ -57,6 +60,7 @@ api/
 │       ├── expenses/           # Per-cow expenses
 │       ├── milk_sales/         # Farm-level milk sales
 │       ├── alerts/             # Alert queries
+│       ├── notifications/      # Android FCM token registration and sends
 │       └── dashboard/          # Dashboard metrics
 ├── prisma/
 │   ├── schema.prisma           # Database schema
@@ -92,6 +96,7 @@ All routes are prefixed with `/v1/`.
 | Expenses         | `/v1/cows/:cowId/expenses`         | [README](src/modules/expenses/README.md)   |
 | Milk Sales       | `/v1/milk-sales`                   | [README](src/modules/milk_sales/README.md) |
 | Alerts           | `/v1/alerts`                       | [README](src/modules/alerts/README.md)     |
+| Notifications    | `/v1/notifications`                | [README](src/modules/notifications/README.md) |
 | Dashboard        | `/v1/dashboard`                    | [README](src/modules/dashboard/README.md)  |
 
 ## Setup
@@ -122,6 +127,9 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 SUPABASE_URI=postgresql://postgres:password@db.your-project-ref.supabase.co:5432/postgres
 DATABASE_URL=postgresql://postgres.your-project-ref:password@aws-0-region.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
 DIRECT_URL=postgresql://postgres:password@db.your-project-ref.supabase.co:5432/postgres
+FIREBASE_PROJECT_ID=your-firebase-project-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 ```
 
 ### Run Migrations
@@ -146,6 +154,7 @@ npm run build && npm start
 | ------------------------ | ------------------------------------- |
 | `npm run dev`            | Start dev server with nodemon         |
 | `npm run build`          | Compile TypeScript to `dist/`         |
+| `npm test`               | Run Node test suite through ts-node   |
 | `npm start`              | Run compiled build                    |
 | `npm run seed:test`      | Insert repeatable local test data     |
 | `npm run migrate`        | Create and apply a new migration      |
