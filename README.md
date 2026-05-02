@@ -86,18 +86,18 @@ All routes are prefixed with `/v1/`.
 
 ## Endpoints Summary
 
-| Module           | Base Path                          | Docs                                       |
-| ---------------- | ---------------------------------- | ------------------------------------------ |
-| Auth             | `/v1/auth`                         | [README](src/modules/auth/README.md)       |
-| Cows             | `/v1/cows`                         | [README](src/modules/cows/README.md)       |
-| Health Records   | `/v1/cows/:cowId/health-records`   | [README](src/modules/health/README.md)     |
-| Breeding Records | `/v1/cows/:cowId/breeding-records` | [README](src/modules/breeding/README.md)   |
-| Milk Logs        | `/v1/cows/:cowId/milk-logs`        | [README](src/modules/milk/README.md)       |
-| Expenses         | `/v1/cows/:cowId/expenses`         | [README](src/modules/expenses/README.md)   |
-| Milk Sales       | `/v1/milk-sales`                   | [README](src/modules/milk_sales/README.md) |
-| Alerts           | `/v1/alerts`                       | [README](src/modules/alerts/README.md)     |
+| Module           | Base Path                          | Docs                                          |
+| ---------------- | ---------------------------------- | --------------------------------------------- |
+| Auth             | `/v1/auth`                         | [README](src/modules/auth/README.md)          |
+| Cows             | `/v1/cows`                         | [README](src/modules/cows/README.md)          |
+| Health Records   | `/v1/cows/:cowId/health-records`   | [README](src/modules/health/README.md)        |
+| Breeding Records | `/v1/cows/:cowId/breeding-records` | [README](src/modules/breeding/README.md)      |
+| Milk Logs        | `/v1/cows/:cowId/milk-logs`        | [README](src/modules/milk/README.md)          |
+| Expenses         | `/v1/cows/:cowId/expenses`         | [README](src/modules/expenses/README.md)      |
+| Milk Sales       | `/v1/milk-sales`                   | [README](src/modules/milk_sales/README.md)    |
+| Alerts           | `/v1/alerts`                       | [README](src/modules/alerts/README.md)        |
 | Notifications    | `/v1/notifications`                | [README](src/modules/notifications/README.md) |
-| Dashboard        | `/v1/dashboard`                    | [README](src/modules/dashboard/README.md)  |
+| Dashboard        | `/v1/dashboard`                    | [README](src/modules/dashboard/README.md)     |
 
 ## Setup
 

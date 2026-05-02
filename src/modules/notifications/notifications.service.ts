@@ -47,13 +47,17 @@ export class NotificationsService {
     this.getDb =
       deps.getDb ??
       (() => {
-        const dbConfig = require("../../config/db") as typeof import("../../config/db");
+        const dbConfig =
+          require("../../config/db") as typeof import("../../config/db");
+
         return dbConfig.createSupabaseAdminClient();
       });
     this.getOrganizationId =
       deps.getOrgId ??
       (() => {
-        const dbConfig = require("../../config/db") as typeof import("../../config/db");
+        const dbConfig =
+          require("../../config/db") as typeof import("../../config/db");
+
         return dbConfig.getOrgId();
       });
     this.now = deps.now ?? (() => new Date());
@@ -61,7 +65,9 @@ export class NotificationsService {
       deps.messaging ??
       ({
         sendEachForMulticast: async (message) => {
-          const firebaseAdmin = require("../../config/firebase-admin").default as typeof import("../../config/firebase-admin").default;
+          const firebaseAdmin = require("../../config/firebase-admin")
+            .default as typeof import("../../config/firebase-admin").default;
+
           return firebaseAdmin.messaging().sendEachForMulticast(message);
         },
       } satisfies MessagingPort);

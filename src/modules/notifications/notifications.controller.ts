@@ -24,7 +24,10 @@ export const unregisterNotificationToken = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    await notificationsService.unregisterToken(req.authUser!.id, req.body.token);
+    await notificationsService.unregisterToken(
+      req.authUser!.id,
+      req.body.token,
+    );
 
     res.status(204).send();
   } catch (err) {

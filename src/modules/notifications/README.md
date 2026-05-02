@@ -4,11 +4,11 @@ Android-only Firebase Cloud Messaging support for the mobile app.
 
 ## Endpoints
 
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-| `POST` | `/v1/notifications/tokens` | Register or refresh the authenticated user's Android FCM token |
-| `DELETE` | `/v1/notifications/tokens` | Remove the authenticated user's Android FCM token |
-| `POST` | `/v1/notifications/test` | Send a test push notification to the authenticated user's registered Android devices |
+| Method   | Path                       | Description                                                                          |
+| -------- | -------------------------- | ------------------------------------------------------------------------------------ |
+| `POST`   | `/v1/notifications/tokens` | Register or refresh the authenticated user's Android FCM token                       |
+| `DELETE` | `/v1/notifications/tokens` | Remove the authenticated user's Android FCM token                                    |
+| `POST`   | `/v1/notifications/test`   | Send a test push notification to the authenticated user's registered Android devices |
 
 All endpoints are protected and require `Authorization: Bearer <access_token>`.
 
@@ -82,6 +82,41 @@ Response:
   "failureCount": 0
 }
 ```
+
+## Event Helper
+
+Use `notificationEventsService` from other API modules so each module does not need to hand-build FCM titles, body text, or routing data.
+
+```ts
+import { notificationEventsService } from "../notifications/notification-events.service";
+```
+
+Example from a controller after the main write succeeds:
+
+```ts
+const record = await healthService.createHealthRecord(req.params.cowId, req.body);
+
+await notificationEventsService.notifyHealthFollowUpDue(req.authUser!.id, {
+  cowId: record.cow_id,
+  tagNumber: cow.tag_number,
+  recordId: record.id,
+  description: record.description,
+  nextDueDate: record.next_due_date!,
+});
+
+res.status(201).json(record);
+```
+
+The helper methods are best-effort: if Firebase sending fails, they log the error and return `null` rather than failing the primary module operation.
+
+Available helpers:
+
+- `notifyHealthFollowUpDue(userId, event)`
+- `notifyCalvingDue(userId, event)`
+- `notifyMissingMilkLogs(userId, event)`
+- `notifyMilkSaleRecorded(userId, event)`
+
+All helpers currently send to the authenticated user's registered Android devices through `notificationsService.sendToUser`.
 
 ## Database
 

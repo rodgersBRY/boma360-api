@@ -16,7 +16,10 @@ export const notificationsRouter = Router();
 notificationsRouter
   .route("/tokens")
   .post(validate(registerNotificationTokenSchema), registerNotificationToken)
-  .delete(validate(unregisterNotificationTokenSchema), unregisterNotificationToken);
+  .delete(
+    validate(unregisterNotificationTokenSchema),
+    unregisterNotificationToken,
+  );
 
 notificationsRouter.post(
   "/test",
