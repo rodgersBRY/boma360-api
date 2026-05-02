@@ -46,6 +46,9 @@ const start = async (): Promise<void> => {
     logger.info("  GET    /v1/milk-sales");
     logger.info("  POST   /v1/milk-sales");
     logger.info("  GET    /v1/alerts");
+    logger.info("  POST   /v1/notifications/tokens");
+    logger.info("  DELETE /v1/notifications/tokens");
+    logger.info("  POST   /v1/notifications/test");
     logger.info("  GET    /v1/dashboard");
   });
 };

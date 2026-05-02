@@ -14,6 +14,7 @@ import { expensesRouter } from "../modules/expenses/expenses.router";
 import { milkSalesRouter } from "../modules/milk_sales/milk_sales.router";
 import { alertsRouter } from "../modules/alerts/alerts.router";
 import { dashboardRouter } from "../modules/dashboard/dashboard.router";
+import { notificationsRouter } from "../modules/notifications/notifications.router";
 import { supabase } from "./db";
 
 export const initializeServer = (): Application => {
@@ -48,6 +49,7 @@ export const initializeServer = (): Application => {
     .use("/v1/cows", expensesRouter)
     .use("/v1/milk-sales", milkSalesRouter)
     .use("/v1/alerts", alertsRouter)
+    .use("/v1/notifications", notificationsRouter)
     .use("/v1/dashboard", dashboardRouter);
 
   app.use((_req: Request, res: Response) => {

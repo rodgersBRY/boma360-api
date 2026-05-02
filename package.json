@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nodemon",
     "build": "tsc",
+    "test": "node --require ts-node/register --test \"src/**/*.test.ts\"",
     "start": "node dist/app.js",
     "seed:test": "ts-node src/scripts/seedTestData.ts",
     "migrate": "prisma migrate dev",
@@ -17,6 +18,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "firebase-admin": "^13.8.0",
     "helmet": "^8.1.0",
     "morgan": "^1.10.0",
     "uuid": "^11.0.0",

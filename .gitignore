@@ -11,3 +11,5 @@ dist/
 
 !.env.examplegenerated/
 .vercel
+
+.firebase/
