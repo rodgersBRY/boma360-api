@@ -51,7 +51,11 @@ export class NotificationEventsService {
     this.onError =
       deps.onError ??
       ((error, eventName) => {
-        logger.warn("failed to send notification event %s: %o", eventName, error);
+        logger.warn(
+          "failed to send notification event %s: %o",
+          eventName,
+          error,
+        );
       });
   }
 

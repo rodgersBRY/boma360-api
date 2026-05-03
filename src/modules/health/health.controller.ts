@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { healthService } from "./health.service";
 import { parsePagination } from "../../lib/pagination";
+import { moduleNotificationsService } from "../notifications/module-notifications.service";
 
 export const createHealthRecord = async (
   req: Request,
@@ -11,6 +12,11 @@ export const createHealthRecord = async (
     const record = await healthService.createRecord(
       req.params.cowId as string,
       req.body,
+    );
+
+    await moduleNotificationsService.notifyHealthRecordSaved(
+      req.authUser!.id,
+      record,
     );
 
     res.status(201).json(record);
@@ -65,6 +71,11 @@ export const updateHealthRecord = async (
       req.params.cowId as string,
       req.params.id as string,
       req.body,
+    );
+
+    await moduleNotificationsService.notifyHealthRecordSaved(
+      req.authUser!.id,
+      record,
     );
 
     res.json(record);

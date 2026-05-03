@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { breedingService } from "./breeding.service";
 import { parsePagination } from "../../lib/pagination";
+import { moduleNotificationsService } from "../notifications/module-notifications.service";
 
 export const createBreedingRecord = async (
   req: Request,
@@ -11,6 +12,11 @@ export const createBreedingRecord = async (
     const result = await breedingService.createRecord(
       req.params.cowId as string,
       req.body,
+    );
+
+    await moduleNotificationsService.notifyBreedingRecordSaved(
+      req.authUser!.id,
+      result,
     );
 
     res.status(201).json(result);

@@ -15,6 +15,7 @@ import { milkSalesRouter } from "../modules/milk_sales/milk_sales.router";
 import { alertsRouter } from "../modules/alerts/alerts.router";
 import { dashboardRouter } from "../modules/dashboard/dashboard.router";
 import { notificationsRouter } from "../modules/notifications/notifications.router";
+import { scheduledNotificationsRouter } from "../modules/notifications/scheduled-notifications.router";
 import { supabase } from "./db";
 
 export const initializeServer = (): Application => {
@@ -41,6 +42,7 @@ export const initializeServer = (): Application => {
 
   app
     .use("/v1/auth", authRouter)
+    .use("/v1/notifications", scheduledNotificationsRouter)
     .use(requireAuth)
     .use("/v1/cows", cowsRouter)
     .use("/v1/cows", healthRouter)

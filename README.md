@@ -127,10 +127,13 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 SUPABASE_URI=postgresql://postgres:password@db.your-project-ref.supabase.co:5432/postgres
 DATABASE_URL=postgresql://postgres.your-project-ref:password@aws-0-region.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
 DIRECT_URL=postgresql://postgres:password@db.your-project-ref.supabase.co:5432/postgres
+CRON_SECRET=generate-a-long-random-secret
 FIREBASE_PROJECT_ID=your-firebase-project-id
 FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 ```
+
+`CRON_SECRET` is used by Vercel Cron. Vercel sends it as `Authorization: Bearer <CRON_SECRET>` when invoking scheduled jobs.
 
 ### Run Migrations
 
@@ -235,3 +238,16 @@ Common HTTP status codes:
 ## Testing
 
 Use `api.http` with the [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) VS Code extension or any HTTP client that supports `.http` files (e.g., JetBrains HTTP Client).
+
+## Vercel Cron
+
+`vercel.json` schedules `GET /v1/notifications/daily-alerts` once per day at `0 15 * * *` UTC, which is 18:00 in Africa/Nairobi. This endpoint sends daily farm attention notifications to users with registered Android FCM tokens.
+
+Before deploying, add these Vercel environment variables:
+
+```bash
+vercel env add CRON_SECRET production
+vercel env add FIREBASE_PROJECT_ID production
+vercel env add FIREBASE_CLIENT_EMAIL production
+vercel env add FIREBASE_PRIVATE_KEY production
+```

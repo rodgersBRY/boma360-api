@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { milkSalesService } from "./milk_sales.service";
 import { parsePagination } from "../../lib/pagination";
+import { moduleNotificationsService } from "../notifications/module-notifications.service";
 
 export const createMilkSale = async (
   req: Request,
@@ -9,6 +10,11 @@ export const createMilkSale = async (
 ): Promise<void> => {
   try {
     const sale = await milkSalesService.createSale(req.body);
+
+    await moduleNotificationsService.notifyMilkSaleRecorded(
+      req.authUser!.id,
+      sale,
+    );
 
     res.status(201).json(sale);
   } catch (err) {

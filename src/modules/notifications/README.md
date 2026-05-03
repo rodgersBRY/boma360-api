@@ -4,13 +4,16 @@ Android-only Firebase Cloud Messaging support for the mobile app.
 
 ## Endpoints
 
-| Method   | Path                       | Description                                                                          |
-| -------- | -------------------------- | ------------------------------------------------------------------------------------ |
-| `POST`   | `/v1/notifications/tokens` | Register or refresh the authenticated user's Android FCM token                       |
-| `DELETE` | `/v1/notifications/tokens` | Remove the authenticated user's Android FCM token                                    |
-| `POST`   | `/v1/notifications/test`   | Send a test push notification to the authenticated user's registered Android devices |
+| Method   | Path                             | Description                                                                          |
+| -------- | -------------------------------- | ------------------------------------------------------------------------------------ |
+| `POST`   | `/v1/notifications/tokens`       | Register or refresh the authenticated user's Android FCM token                       |
+| `DELETE` | `/v1/notifications/tokens`       | Remove the authenticated user's Android FCM token                                    |
+| `POST`   | `/v1/notifications/test`         | Send a test push notification to the authenticated user's registered Android devices |
+| `GET`    | `/v1/notifications/daily-alerts` | Cron-only endpoint that sends daily farm attention notifications                     |
 
-All endpoints are protected and require `Authorization: Bearer <access_token>`.
+Token and test endpoints are protected and require `Authorization: Bearer <access_token>`.
+
+The daily alerts endpoint is protected by `Authorization: Bearer <CRON_SECRET>` because it is called by Vercel Cron rather than a signed-in user.
 
 ## Register Token
 
@@ -94,7 +97,10 @@ import { notificationEventsService } from "../notifications/notification-events.
 Example from a controller after the main write succeeds:
 
 ```ts
-const record = await healthService.createHealthRecord(req.params.cowId, req.body);
+const record = await healthService.createHealthRecord(
+  req.params.cowId,
+  req.body,
+);
 
 await notificationEventsService.notifyHealthFollowUpDue(req.authUser!.id, {
   cowId: record.cow_id,
@@ -118,6 +124,31 @@ Available helpers:
 
 All helpers currently send to the authenticated user's registered Android devices through `notificationsService.sendToUser`.
 
+## Module Triggers
+
+The existing API modules call `moduleNotificationsService` after successful writes:
+
+- Health records: sends `notifyHealthFollowUpDue` when `next_due_date` is today or overdue.
+- Breeding records: sends `notifyCalvingDue` when `expected_calving_date` is today or overdue.
+- Milk sales: sends `notifyMilkSaleRecorded` after a sale is created.
+
+## Daily Scheduled Alerts
+
+`scheduledNotificationsService.sendDailyFarmAlerts()` powers:
+
+```http
+GET /v1/notifications/daily-alerts
+Authorization: Bearer <CRON_SECRET>
+```
+
+It finds users with registered Android tokens, computes due alerts per organization, and sends:
+
+- Health follow-ups due.
+- Calving due.
+- A missing milk logs summary when active cows have no milk entry for the day.
+
+`vercel.json` schedules this endpoint at `0 15 * * *` UTC, which is 18:00 in Africa/Nairobi.
+
 ## Database
 
 The `notification_tokens` table is created by `migrations/004_notification_tokens.sql`.
@@ -139,4 +170,5 @@ Notification sends require these environment variables:
 FIREBASE_PROJECT_ID=your-firebase-project-id
 FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+CRON_SECRET=generate-a-long-random-secret
 ```

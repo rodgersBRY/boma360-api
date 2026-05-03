@@ -1,0 +1,7 @@
+.env
+.env.*
+*.http
+node_modules
+dist
+.claude
+.firebase
