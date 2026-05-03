@@ -13,6 +13,7 @@ class FakeSender implements NotificationSender {
       body: string;
       data?: Record<string, string>;
     };
+    organizationId?: string;
   }> = [];
 
   async sendToUser(
@@ -22,8 +23,15 @@ class FakeSender implements NotificationSender {
       body: string;
       data?: Record<string, string>;
     },
+    options?: { organizationId?: string },
   ): Promise<{ successCount: number; failureCount: number }> {
-    this.sent.push({ userId, input });
+    this.sent.push({
+      userId,
+      input,
+      ...(options?.organizationId
+        ? { organizationId: options.organizationId }
+        : {}),
+    });
 
     return { successCount: 1, failureCount: 0 };
   }
@@ -129,5 +137,21 @@ describe("NotificationEventsService", () => {
     });
 
     assert.equal(result, null);
+  });
+
+  it("passes explicit organization id to the notification sender", async () => {
+    const sender = new FakeSender();
+    const events = new NotificationEventsService({ sender });
+
+    await events.notifyMissingMilkLogs(
+      "user-1",
+      {
+        count: 2,
+        date: "2026-05-03",
+      },
+      { organizationId: "org-1" },
+    );
+
+    assert.equal(sender.sent[0].organizationId, "org-1");
   });
 });

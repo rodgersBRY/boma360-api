@@ -4,6 +4,7 @@ import {
   MissingMilkLogsEvent,
   notificationEventsService,
 } from "./notification-events.service";
+import { SendNotificationOptions } from "./notifications.service";
 
 interface NotificationRecipient {
   userId: string;
@@ -45,11 +46,17 @@ export interface ScheduledNotificationEvents {
   notifyHealthFollowUpDue(
     userId: string,
     event: HealthFollowUpDueEvent,
+    options?: SendNotificationOptions,
   ): Promise<unknown>;
-  notifyCalvingDue(userId: string, event: CalvingDueEvent): Promise<unknown>;
+  notifyCalvingDue(
+    userId: string,
+    event: CalvingDueEvent,
+    options?: SendNotificationOptions,
+  ): Promise<unknown>;
   notifyMissingMilkLogs(
     userId: string,
     event: MissingMilkLogsEvent,
+    options?: SendNotificationOptions,
   ): Promise<unknown>;
 }
 
@@ -106,31 +113,43 @@ export class ScheduledNotificationsService {
       }
 
       for (const alert of alerts.health_due) {
-        await this.events.notifyHealthFollowUpDue(recipient.userId, {
-          cowId: alert.cow_id,
-          tagNumber: alert.tag_number,
-          recordId: alert.record_id,
-          description: alert.description,
-          nextDueDate: alert.next_due_date,
-        });
+        await this.events.notifyHealthFollowUpDue(
+          recipient.userId,
+          {
+            cowId: alert.cow_id,
+            tagNumber: alert.tag_number,
+            recordId: alert.record_id,
+            description: alert.description,
+            nextDueDate: alert.next_due_date,
+          },
+          { organizationId: recipient.organizationId },
+        );
         summary.healthFollowUps += 1;
       }
 
       for (const alert of alerts.calving_due) {
-        await this.events.notifyCalvingDue(recipient.userId, {
-          cowId: alert.cow_id,
-          tagNumber: alert.tag_number,
-          breedingRecordId: alert.breeding_record_id,
-          expectedCalvingDate: alert.expected_calving_date,
-        });
+        await this.events.notifyCalvingDue(
+          recipient.userId,
+          {
+            cowId: alert.cow_id,
+            tagNumber: alert.tag_number,
+            breedingRecordId: alert.breeding_record_id,
+            expectedCalvingDate: alert.expected_calving_date,
+          },
+          { organizationId: recipient.organizationId },
+        );
         summary.calvingDue += 1;
       }
 
       if (alerts.no_milk_today.length > 0) {
-        await this.events.notifyMissingMilkLogs(recipient.userId, {
-          count: alerts.no_milk_today.length,
-          date: today,
-        });
+        await this.events.notifyMissingMilkLogs(
+          recipient.userId,
+          {
+            count: alerts.no_milk_today.length,
+            date: today,
+          },
+          { organizationId: recipient.organizationId },
+        );
         summary.missingMilkLogs += 1;
       }
     }

@@ -23,6 +23,10 @@ interface NotificationsServiceDeps {
   messaging?: MessagingPort;
 }
 
+export interface SendNotificationOptions {
+  organizationId?: string;
+}
+
 interface MessagingPort {
   sendEachForMulticast(message: {
     tokens: string[];
@@ -115,11 +119,13 @@ export class NotificationsService {
   async sendToUser(
     userId: string,
     input: SendNotificationInput,
+    options: SendNotificationOptions = {},
   ): Promise<{ successCount: number; failureCount: number }> {
+    const organizationId = options.organizationId ?? this.getOrganizationId();
     const { data, error } = await this.getDb()
       .from("notification_tokens")
       .select("token")
-      .eq("organization_id", this.getOrganizationId())
+      .eq("organization_id", organizationId)
       .eq("user_id", userId)
       .eq("platform", "android")
       .order("last_seen_at", { ascending: false });

@@ -9,32 +9,55 @@ import {
   ScheduledNotificationEvents,
   ScheduledNotificationsService,
 } from "./scheduled-notifications.service";
+import { SendNotificationOptions } from "./notifications.service";
 
 class FakeEvents implements ScheduledNotificationEvents {
-  calls: Array<{ name: string; userId: string; event: Record<string, unknown> }> =
-    [];
+  calls: Array<{
+    name: string;
+    userId: string;
+    event: Record<string, unknown>;
+    organizationId?: string;
+  }> = [];
 
   async notifyHealthFollowUpDue(
     userId: string,
     event: HealthFollowUpDueEvent,
+    options?: SendNotificationOptions,
   ): Promise<null> {
-    this.calls.push({ name: "health", userId, event: { ...event } });
+    this.calls.push({
+      name: "health",
+      userId,
+      event: { ...event },
+      organizationId: options?.organizationId,
+    });
     return null;
   }
 
   async notifyCalvingDue(
     userId: string,
     event: CalvingDueEvent,
+    options?: SendNotificationOptions,
   ): Promise<null> {
-    this.calls.push({ name: "calving", userId, event: { ...event } });
+    this.calls.push({
+      name: "calving",
+      userId,
+      event: { ...event },
+      organizationId: options?.organizationId,
+    });
     return null;
   }
 
   async notifyMissingMilkLogs(
     userId: string,
     event: MissingMilkLogsEvent,
+    options?: SendNotificationOptions,
   ): Promise<null> {
-    this.calls.push({ name: "missing_milk", userId, event: { ...event } });
+    this.calls.push({
+      name: "missing_milk",
+      userId,
+      event: { ...event },
+      organizationId: options?.organizationId,
+    });
     return null;
   }
 }
@@ -90,6 +113,7 @@ describe("ScheduledNotificationsService", () => {
       {
         name: "health",
         userId: "user-1",
+        organizationId: "org-1",
         event: {
           cowId: "cow-1",
           tagNumber: "A12",
@@ -101,6 +125,7 @@ describe("ScheduledNotificationsService", () => {
       {
         name: "calving",
         userId: "user-1",
+        organizationId: "org-1",
         event: {
           cowId: "cow-2",
           tagNumber: "B7",
@@ -111,6 +136,7 @@ describe("ScheduledNotificationsService", () => {
       {
         name: "missing_milk",
         userId: "user-1",
+        organizationId: "org-1",
         event: {
           count: 2,
           date: "2026-05-03",
