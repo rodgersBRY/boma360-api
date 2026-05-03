@@ -59,7 +59,7 @@ describe("NotificationEventsService", () => {
           body: "A12 needs Vaccination booster today.",
           data: {
             event: "health_follow_up_due",
-            screen: "alerts",
+            screen: "cow_profile",
             cowId: "cow-1",
             recordId: "record-1",
             nextDueDate: "2026-05-02",
@@ -87,7 +87,7 @@ describe("NotificationEventsService", () => {
         body: "A12 is expected to calve today.",
         data: {
           event: "calving_due",
-          screen: "alerts",
+          screen: "cow_profile",
           cowId: "cow-1",
           breedingRecordId: "breeding-1",
           expectedCalvingDate: "2026-05-02",
@@ -112,7 +112,7 @@ describe("NotificationEventsService", () => {
         body: "3 cows still need milk logs for today.",
         data: {
           event: "missing_milk_logs",
-          screen: "alerts",
+          screen: "milk",
           date: "2026-05-02",
           count: "3",
         },

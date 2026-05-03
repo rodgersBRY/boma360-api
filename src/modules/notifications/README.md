@@ -72,7 +72,8 @@ Content-Type: application/json
   "title": "Health follow-up",
   "body": "Cow A12 has a vaccine due today",
   "data": {
-    "screen": "alerts"
+    "screen": "cow_profile",
+    "cowId": "cow-id"
   }
 }
 ```
@@ -123,6 +124,13 @@ Available helpers:
 - `notifyMilkSaleRecorded(userId, event)`
 
 All helpers currently send to the authenticated user's registered Android devices through `notificationsService.sendToUser`.
+
+Notification tap routing is controlled by the `data.screen` field:
+
+- Health follow-up due: sends `screen: "cow_profile"` with `cowId`.
+- Calving due: sends `screen: "cow_profile"` with `cowId`.
+- Missing milk logs: sends `screen: "milk"`.
+- Milk sale recorded: sends `screen: "sales"`.
 
 ## Module Triggers
 

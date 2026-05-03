@@ -76,7 +76,7 @@ export class NotificationEventsService {
         body: `${event.tagNumber} needs ${event.description} today.`,
         data: {
           event: "health_follow_up_due",
-          screen: "alerts",
+          screen: "cow_profile",
           cowId: event.cowId,
           recordId: event.recordId,
           nextDueDate: event.nextDueDate,
@@ -99,7 +99,7 @@ export class NotificationEventsService {
         body: `${event.tagNumber} is expected to calve today.`,
         data: {
           event: "calving_due",
-          screen: "alerts",
+          screen: "cow_profile",
           cowId: event.cowId,
           breedingRecordId: event.breedingRecordId,
           expectedCalvingDate: event.expectedCalvingDate,
@@ -124,7 +124,7 @@ export class NotificationEventsService {
         body: `${event.count} ${cowLabel} still need milk logs for today.`,
         data: {
           event: "missing_milk_logs",
-          screen: "alerts",
+          screen: "milk",
           date: event.date,
           count: String(event.count),
         },
